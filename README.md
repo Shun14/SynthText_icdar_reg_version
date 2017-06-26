@@ -4,13 +4,13 @@ Modify from https://github.com/ankush-me/SynthText.git to generate chinese chara
 
 My OS is Ubuntu opencv2.4 But I am not sure whether it can run on other OS
 
-I change some func
+I changed some func
 
-1,In synthGen I add a function called is_chinese(char ) to or with is_english to cal num of valid chars.
+1,In synthGen I added a function called is_chinese(char ) to or with is_english to cal num of valid chars.
 
-2,Update the .tff char style files and the path.txt,then 
+2,Updated the .tff char style files and the path.txt,then 
 
-3,some utf-8 decode and encode for chinese char ....Ah I forget the details....
+3,some utf-8 decoded and encoded for chinese char ....Ah I forgot the details....
 
 4,So you can add more pic into the dataset and check with issue under the anthor to fix mistakes......
 
