@@ -1,6 +1,18 @@
-# SynthText
+# SynthText from Ankush
 
-Modify from https://github.com/ankush-me/SynthText.git to generate chinese character
+Modify from https://github.com/ankush-me/SynthText.git to generate chinese character 
+
+My OS is Ubuntu opencv2.4 But I am not sure whether it can run on other OS
+
+I change some func
+
+1,In synthGen I add a function call is_chinese(char ) to or with is_english.
+
+2,Update the .tff char style files and the path.txt,then 
+
+3,some utf-8 decode and encode....Ah I forget the details....
+
+4,So you can add more pic into the dataset and check with issue under the anthor to fix mistakes......
 
 Code for generating synthetic text images as described in ["Synthetic Data for Text Localisation in Natural Images", Ankush Gupta, Andrea Vedaldi, Andrew Zisserman, CVPR 2016](http://www.robots.ox.ac.uk/~vgg/data/scenetext/).
 
