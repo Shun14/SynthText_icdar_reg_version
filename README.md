@@ -1,5 +1,6 @@
 # SynthText
-# Modify from https://github.com/ankush-me/SynthText.git to generate chinese character
+
+Modify from https://github.com/ankush-me/SynthText.git to generate chinese character
 Code for generating synthetic text images as described in ["Synthetic Data for Text Localisation in Natural Images", Ankush Gupta, Andrea Vedaldi, Andrew Zisserman, CVPR 2016](http://www.robots.ox.ac.uk/~vgg/data/scenetext/).
 
 
