@@ -14,6 +14,17 @@ I changed some func,just run gen.py will be OK,in gen.py I change the depth pred
 
 4,So you can add more pic into the dataset and check with issue under the anthor to fix mistakes......
 
+These are some sample I do.
+
+** Synthetic Scene-Text Image Samples**
+![Synthetic Scene-Text Samples](Figure_1-1.png "Synthetic Samples")
+
+** Synthetic Scene-Text Image Samples**
+![Synthetic Scene-Text Samples](Figure_1-2.png "Synthetic Samples")
+
+** Synthetic Scene-Text Image Samples**
+![Synthetic Scene-Text Samples](Figure_1.png "Synthetic Samples")
+
 Code for generating synthetic text images as described in ["Synthetic Data for Text Localisation in Natural Images", Ankush Gupta, Andrea Vedaldi, Andrew Zisserman, CVPR 2016](http://www.robots.ox.ac.uk/~vgg/data/scenetext/).
 
 
