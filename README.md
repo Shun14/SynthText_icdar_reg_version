@@ -4,7 +4,7 @@ Modify from https://github.com/ankush-me/SynthText.git to generate chinese chara
 
 My OS is Ubuntu opencv2.4 But I am not sure whether it can run on other OS
 
-I changed some func
+I changed some func,just run gen.py will be OK,in gen.py I change the depth prediction map with gray map for generating char on cartoon image , for natural img you need to change back to depth map ,other gen**.py contains similar code with different path I do for myself...
 
 1,In synthGen I added a function called is_chinese(char ) to or with is_english to cal num of valid chars.
 
