@@ -6,6 +6,8 @@ My OS is Ubuntu opencv2.4 But I am not sure whether it can run on other OS
 
 I changed some func,just run gen.py will be OK,in gen.py I change the depth prediction map with gray map for generating char on cartoon image , for natural img you need to change back to depth map ,other gen**.py contains similar code with different path I do for myself...
 
+0,Before running this code make sure your OS support unicode for chinese.. which as well cost me hours....
+
 1,In synthGen I added a function called is_chinese(char ) to or with is_english to cal num of valid chars.
 
 2,Updated the .tff char style files and the path.txt,then 
