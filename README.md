@@ -16,6 +16,8 @@ I changed some func,just run gen.py will be OK,in gen.py I change the depth pred
 
 4,So you can add more pic into the dataset and check with issue under the anthor to fix mistakes......
 
+5,If you want to add more img , firstly you need to compute the segmentation and depth prediction by the 2 matlab code and 1 python code provided by author, and then use the add_more_data.py to generate a new big dset.h5 , containing all of imgs and their seg and depth, then rerun gen.py to see its performance.
+
 These are some samples I do.
 
 ** Synthetic Scene-Text Image Samples**
