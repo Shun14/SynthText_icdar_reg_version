@@ -108,7 +108,7 @@ class RenderFont(object):
 
         # text-source : gets english text:
         self.text_source = TextSource(min_nchar=self.min_nchar,
-                                      fn=osp.join(data_dir,'newsgroup/'))
+                                      fn=osp.join(data_dir,'ad/'))
 
         # get font-state object:
         self.font_state = FontState(data_dir)
@@ -278,7 +278,7 @@ class RenderFont(object):
             safemask = intersect < 1e8
 
             if not np.any(safemask): # no collision-free position:
-                #warn("COLLISION!!!")
+                # warn("COLLISION!!!")
                 return back_arr,locs[:i],bbs[:i],order[:i]
 
             minloc = np.transpose(np.nonzero(safemask))
@@ -368,18 +368,20 @@ class RenderFont(object):
             assert nline >= 1 and nchar >= self.min_nchar
 
             # sample text:
-            text_type = sample_weighted(self.p_text)
-            text = self.text_source.sample(nline,nchar,text_type)
-            #text = self.text_source.sample(nline,nchar,'PARA')
+            # text_type = sample_weighted(self.p_text)
+            # text = self.text_source.sample(nline,nchar,text_type)
+            text = self.text_source.sample(nline,nchar,'PARA')
             #text = self.text_source.sample(nline,nchar,'WORD')
-            print 'before the if judge',text
+            # print 'before the if judge',text
             if len(text)==0:
-                print colorize(Color.GREEN, ' didn\'t pass because of len(text)==0')
+                # print ' didn\'t pass because of len(text)==0'
+                # print colorize(Color.GREEN, ' didn\'t pass because of len(text)==0')
                 continue
             if np.any([len(line)==0 for line in text]):
-                print colorize(Color.GREEN, ' didn\'t pass because of np.any')
+                # print ' didn\'t pass because of np.any'
+                # print colorize(Color.GREEN, ' didn\'t pass because of np.any')
                 continue
-            print colorize(Color.GREEN, 'pass the text filter')
+            # print colorize(Color.GREEN, 'pass the text filter')
             #print colorize(Color.GREEN, text)
 
             # render the text:
@@ -389,13 +391,13 @@ class RenderFont(object):
             # make sure that the text-array is not bigger than mask array:
             if np.any(np.r_[txt_arr.shape[:2]] > np.r_[mask.shape[:2]]):
                 #warn("text-array is bigger than mask")
-                print colorize(Color.GREEN, 'fail in mask array size')
+                # print colorize(Color.GREEN, 'fail in mask array size')
                 continue
-            print colorize(Color.GREEN, 'pass in mask array size')
+            # print colorize(Color.GREEN, 'pass in mask array size')
             # position the text within the mask:
-            text_mask,loc,bb, _ = self.place_text([txt_arr], mask, [bb])
+            text_mask,loc,bb, order = self.place_text([txt_arr], mask, [bb])
             if len(loc) > 0:#successful in placing the text collision-free:
-                return text_mask,loc[0],bb[0],text
+                return text_mask,loc[0],bb[0],text, order
         return #None
 
 
@@ -528,9 +530,9 @@ class TextSource(object):
                       'LINE':self.sample_line,
                       'PARA':self.sample_para}
         files= os.listdir(fn)
-        files=files[0:-1]
+        # files=files[0:-1]
         #print files
-        random.shuffle(files)
+        # random.shuffle(files)
         filecnt=10
         self.txt=[]
         for filename in files:
@@ -644,7 +646,7 @@ class TextSource(object):
             return lines
 
     def sample(self, nline_max,nchar_max,kind='WORD'):
-        print 'sample_output',self.fdict[kind](nline_max,nchar_max)
+        # print 'sample_output',self.fdict[kind](nline_max,nchar_max)
         return self.fdict[kind](nline_max,nchar_max)
         
     def sample_word(self,nline_max,nchar_max,niter=100):
@@ -659,7 +661,7 @@ class TextSource(object):
             rand_word = random.choice(words)
             iter += 1
         #print colorize(Color.GREEN, rand_word)
-        print 'sample_word_output',rand_word
+        # print 'sample_word_output',rand_word
         if not self.is_good([rand_word])[0] or len(rand_word)>nchar_max:
             return []
         else:
@@ -677,7 +679,7 @@ class TextSource(object):
         nword = [max(1,int(np.ceil(n))) for n in nword]
 
         lines = self.get_lines(nline, nword, nchar_max, f=0.35)
-        print 'sample_line_output',lines
+        # print 'sample_line_output',lines
         if lines is not None:
             return '\n'.join(lines)
         else:
@@ -694,7 +696,7 @@ class TextSource(object):
         nword = [max(1,int(np.ceil(n))) for n in nword]
 
         lines = self.get_lines(nline, nword, nchar_max, f=0.35)
-        print 'sample_para_output',lines
+        # print 'sample_para_output',lines
         if lines is not None:
             # center align the paragraph-text:
             if np.random.rand() < self.center_para:

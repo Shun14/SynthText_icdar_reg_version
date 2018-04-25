@@ -4,10 +4,16 @@
 """
 Main script for synthetic text rendering.
 """
-
+# coding=utf-8
 from __future__ import division
+import sys
+reload(sys) 
+sys.setdefaultencoding('utf-8') 
+
+
 import copy
 import cv2
+import os
 import h5py
 from PIL import Image
 import numpy as np 
@@ -204,6 +210,48 @@ def rescale_frontoparallel(p_fp,box_fp,p_im):
         s = 1.0
     return s
 
+# def crop_text_from_img(img, text, bb, img_name, instance, idx,data_dir):
+#     txt_path = os.path.join(data_dir, 'txt' ,img_name)
+#     img_path = os.path.join(data_dir, 'img' ,img_name)
+#     if not os.path.exists(txt_path):
+#         os.makedirs(txt_path)
+#     if not os.path.exists(img_path):
+#         os.makedirs(img_path)
+#     img_copy = copy.copy(img)
+#     list_text = list(text)
+#     write_txt_list = []
+#     crop_txt_path = txt_path + '/txt_' + str(instance) + '.txt'
+#     word_bbox = self.char2wordBB(bb, text)
+    
+#     print(text)
+#     print(word_bbox)
+#     for i in xrange(word_bbox.shape[2]):
+#         wordBB = word_bbox[:,:,i]
+#         X_min = int(character_bbox[0].min())
+#         X_max = int(character_bbox[0].max())
+#         Y_min = int(character_bbox[1].min())
+#         Y_max = int(character_bbox[1].max())
+#         print(X_min, X_max, Y_max, Y_min)
+#         crop_img = img_copy[X_min:X_max, Y_min:Y_max]
+#         # print('crop+img.shape',crop_img.shape)
+#         __range = '/img_%s_%s_%s' % (str(instance), str(idx), str(i))
+#         crop_img_path = img_path + __range + '.jpg'
+        
+    # for i in xrange(bb.shape[2]):
+    #     if list_text[i] != '\n':
+    #         character_bbox = bb[:,:,i]
+    #         write_txt_list.append()
+    #         X_min = int(character_bbox[0].min())
+    #         X_max = int(character_bbox[0].max())
+    #         Y_min = int(character_bbox[1].min())
+    #         Y_max = int(character_bbox[1].max())
+    #         crop_img = img_copy[X_min:X_max, Y_min:Y_max]
+    #         print('crop+img.shape',crop_img.shape)
+    #         __range = '/img_%s_%s_%s' % (str(instance), str(idx), str(i))
+    #         crop_img_path = img_path + __range + '.jpg'
+    #         cv2.imwrite(crop_img_path,cv2.cvtColor(crop_img, cv2.cv.CV_RGB2BGR))
+
+
 def get_text_placement_mask(xyz,mask,plane,pad=2,viz=False):
     """
     Returns a binary mask in which text can be placed.
@@ -286,6 +334,17 @@ def get_text_placement_mask(xyz,mask,plane,pad=2,viz=False):
         plt.show()
 
     return place_mask,H,Hinv
+
+def save_tags_to_txt(data_dir, img_name, instance, write_lines):
+    txt_path = os.path.join(data_dir, 'txt' ,img_name)
+    if not os.path.exists(txt_path):
+        os.makedirs(txt_path)
+
+    crop_txt_path = txt_path + '/txt_' + str(instance) + '.txt'
+    print (crop_txt_path)
+    file = open(crop_txt_path, 'w')
+    file.writelines(write_lines)
+    file.close()
 
 def viz_masks(fignum,rgb,seg,depth,label):
     """
@@ -503,7 +562,7 @@ class RendererV3(object):
         if render_res is None: # rendering not successful
             return #None
         else:
-            text_mask,loc,bb,text = render_res
+            text_mask,loc,bb,text,order = render_res
             #text=text.decode('utf-8')
             
         
@@ -517,9 +576,16 @@ class RendererV3(object):
         bb = self.homographyBB(bb,Hinv)
 
         if not self.bb_filter(bb_orig,bb,text):
-            colorize(Color.RED, 'bad charBB statistics')
-            #warn("bad charBB statistics")
+            # colorize(Color.RED, 'bad charBB statistics')
+            # warn("bad charBB statistics")
             return #None
+        # print('bb:',bb.shape)
+        # length = len(bb[0][0])
+        # list_text = list(text)
+        # for i in xrange(length):
+        #     print(list_text[i])
+        #     print(bb[:,:,i])
+        # print(text)
 
         # get the minimum height of the character-BB:
         min_h = self.get_min_h(bb,text)
@@ -528,7 +594,7 @@ class RendererV3(object):
         text_mask = self.feather(text_mask, min_h)
 
         im_final = self.colorizer.color(rgb,[text_mask],np.array([min_h]))
-        print colorize(Color.GREEN, 'text in synthgen.py/place_text to return '+text)
+        # print colorize(Color.GREEN, 'text in synthgen.py/place_text to return '+text)
         return im_final, text, bb, collision_mask
 
 
@@ -540,6 +606,55 @@ class RendererV3(object):
         else:
             rnd = np.random.beta(5.0,1.0)
         return int(np.ceil(nmax * rnd))
+
+    def crop_text_from_img(self, img, text, bb, img_name, instance, idx,data_dir):
+        img_path = os.path.join( os.getcwd(), data_dir, 'img' ,img_name)
+        if not os.path.exists(img_path):
+            os.makedirs(img_path)
+        img_copy = cv2.cvtColor(copy.copy(img), cv2.cv.CV_RGB2BGR)
+        wrds = text.split()#text
+        write_txt_list = []
+        word_bbox = self.char2wordBB(bb, text)
+        # print(text)
+        # print(word_bbox.shape)
+        # print('wrdswrds:',len(wrds))
+        if word_bbox.shape[2] != len(wrds):
+            print('!!!!!!!!!@@@error@@@!!!!!!!:',word_bbox.shape, len(wrds))
+        write_lines = []
+        
+        for i in xrange(len(wrds)):
+            wordBB = word_bbox[:,:,i]
+            X_min = int(wordBB[0].min())
+            X_max = int(wordBB[0].max())
+            Y_min = int(wordBB[1].min())
+            Y_max = int(wordBB[1].max())
+            # print('***X-min***')
+            # print(X_min, X_max, Y_max, Y_min)
+            crop_img = img_copy[Y_min:Y_max, X_min:X_max]
+            # print('crop+img.shape',crop_img.shape)
+            __range = '/img_%s_%s_%s' % (str(instance), str(idx), str(i))
+            crop_img_path = img_path + __range + '.jpg'
+            cv2.imwrite(crop_img_path,crop_img)
+            # print('copImgPath:',crop_img_path)
+            # print(crop_img_path +' ' +wrds[i] +'\n')
+            write_lines.append(crop_img_path +' ' +wrds[i] + '\n')
+            # file.write(crop_img_path +' ' +wrds[i] +'\n')
+        return write_lines
+
+    # for i in xrange(bb.shape[2]):
+    #     if list_text[i] != '\n':
+    #         character_bbox = bb[:,:,i]
+    #         write_txt_list.append()
+    #         X_min = int(character_bbox[0].min())
+    #         X_max = int(character_bbox[0].max())
+    #         Y_min = int(character_bbox[1].min())
+    #         Y_max = int(character_bbox[1].max())
+    #         crop_img = img_copy[X_min:X_max, Y_min:Y_max]
+    #         print('crop+img.shape',crop_img.shape)
+    #         __range = '/img_%s_%s_%s' % (str(instance), str(idx), str(i))
+    #         crop_img_path = img_path + __range + '.jpg'
+    #         cv2.imwrite(crop_img_path,cv2.cvtColor(crop_img, cv2.cv.CV_RGB2BGR))
+
 
     def char2wordBB(self, charBB, text):
         """
@@ -582,7 +697,7 @@ class RendererV3(object):
         return wordBB
 
 
-    def render_text(self,rgb,depth,seg,area,label,ninstance=1,viz=False):
+    def render_text(self,rgb,depth,seg,area,label,imgname, data_dir='output_data', ninstance=1, viz=False):
         """
         rgb   : HxWx3 image rgb values (uint8)
         depth : HxW depth values (float)
@@ -633,7 +748,7 @@ class RendererV3(object):
         for i in xrange(ninstance):
             place_masks = copy.deepcopy(regions['place_mask'])
 
-            print colorize(Color.CYAN, " ** instance # : %d"%i)
+            # print colorize(Color.CYAN, " ** instance # : %d"%i)
 
             idict = {'img':[], 'charBB':None, 'wordBB':None, 'txt':None}
 
@@ -646,6 +761,7 @@ class RendererV3(object):
             img = rgb.copy()
             itext = []
             ibb = []
+            tags_lines_list = []
 
             # process regions: 
             num_txt_regions = len(reg_idx)
@@ -677,9 +793,11 @@ class RendererV3(object):
                     # update the region collision mask:
                     place_masks[ireg] = collision_mask
                     # store the result:
+                    txt_lines = self.crop_text_from_img(img, text, bb, imgname, i, idx,data_dir)
+                    tags_lines_list += txt_lines
                     itext.append(text)
                     ibb.append(bb)
-                    print colorize(Color.GREEN, 'text in synthgen.py/render_text append into itext '+text)
+                    # print colorize(Color.GREEN, 'text in synthgen.py/render_text append into itext '+text)
 
             if  placed:
                 # at least 1 word was placed in this instance:
@@ -687,7 +805,9 @@ class RendererV3(object):
                 idict['txt'] = itext
                 idict['charBB'] = np.concatenate(ibb, axis=2)
                 idict['wordBB'] = self.char2wordBB(idict['charBB'].copy(), ' '.join(itext))
-                print colorize(Color.GREEN, itext)
+                # print colorize(Color.GREEN, itext)
+                save_tags_to_txt(data_dir, imgname, i, tags_lines_list)
+                
                 res.append(idict.copy())
                 if viz:
                     viz_textbb(1,img, [idict['wordBB']], alpha=1.0)

@@ -1,0 +1,26 @@
+# -*- coding: utf-8 -*- 
+import os
+
+def main():
+    rootDir = 'output_data/txt'
+    dir_list = os.listdir(rootDir)
+    all_list = []
+    for lists in dir_list:
+        path = os.path.join(rootDir, lists)
+        # print path
+        for txt in os.listdir(path):
+            txt_path = os.path.join(path, txt)
+            # print txt_path
+            file = open(txt_path, 'r')
+            lines = file.readlines()
+            all_list += lines
+
+    print 'all list:',len(all_list)
+    merge_text_tags = open('merge_text.txt', 'w')
+    merge_text_tags.writelines(all_list)
+    merge_text_tags.close()
+
+if __name__=='__main__':
+    main()
+
+
