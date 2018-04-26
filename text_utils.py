@@ -566,7 +566,7 @@ class TextSource(object):
         # probability to center-align a paragraph:
         self.center_para = 0.5
 
-    @profile
+    #@profile
     def check_symb_frac(self, txt, f=0.35):
         """
         T/F return : T iff fraction of symbol/special-charcters in
@@ -580,7 +580,7 @@ class TextSource(object):
         return float(chcnt)/(len(txt)+0.0)>f
         #return np.sum([not ch.isalnum() for ch in txt])/(len(txt)+0.0) <= f
 
-    @profile
+    #@profile
     def is_good(self, txt, f=0.35):
         """
         T/F return : T iff the lines in txt (a list of txt lines)
@@ -615,8 +615,8 @@ class TextSource(object):
             lines[i] = ' '*lspace+l+' '*rspace
         return lines
 
-    @profile
-    def h_lines(self, f , nline,niter=100):
+    #@profile
+    def h_lines(self, f , nline,niter=50):
         lines = ['']
         iter = 0
         while not np.all(self.is_good(lines,f)) and iter < niter:
@@ -625,8 +625,8 @@ class TextSource(object):
             lines = [self.txt[line_start+i] for i in range(nline)]
         return lines
 
-    @profile
-    def get_lines(self, nline, nword, nchar_max, f=0.35, niter=100):
+   # @profile
+    def get_lines(self, nline, nword, nchar_max, f=0.35, niter=50):
 
         lines = ['']
         iter = 0
@@ -657,7 +657,7 @@ class TextSource(object):
         # print 'sample_output',self.fdict[kind](nline_max,nchar_max)
         return self.fdict[kind](nline_max,nchar_max)
         
-    def sample_word(self,nline_max,nchar_max,niter=100):
+    def sample_word(self,nline_max,nchar_max,niter=50):
         rand_line = self.txt[np.random.choice(len(self.txt))]                
         words = rand_line.split()
         rand_word = random.choice(words)
@@ -702,14 +702,7 @@ class TextSource(object):
         nword = [self.p_para_nword[2]*sstat.beta.rvs(a=self.p_para_nword[0], b=self.p_para_nword[1])
                  for _ in xrange(nline)]
         nword = [max(1,int(np.ceil(n))) for n in nword]
-        t1 = time.time()
-        print('nline:',nline)
-        print('nword:',nword)
-        print('nchar_max',nchar_max)
         lines = self.get_lines(nline, nword, nchar_max, f=0.35)
-        print('lines:')
-        print(lines)
-        print 'sample_para_output',time.time() - t1
         if lines is not None:
             # center align the paragraph-text:
             if np.random.rand() < self.center_para:
