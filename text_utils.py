@@ -108,7 +108,7 @@ class RenderFont(object):
 
         # text-source : gets english text:
         self.text_source = TextSource(min_nchar=self.min_nchar,
-                                      fn=osp.join(data_dir,'ad/'))
+                                      fn=osp.join(data_dir,'newsgroup/'))
 
         # get font-state object:
         self.font_state = FontState(data_dir)
@@ -532,8 +532,8 @@ class TextSource(object):
         files= os.listdir(fn)
         # files=files[0:-1]
         #print files
-        # random.shuffle(files)
-        filecnt=10
+        random.shuffle(files)
+        filecnt=5
         self.txt=[]
         for filename in files:
             filecnt-=1
@@ -549,6 +549,8 @@ class TextSource(object):
                     #print line
                     self.txt.append(line)
         random.shuffle(self.txt)          
+        if len(self.txt) > 50000:
+            self.txt = self.txt[:50000]
         print len(self.txt)
             #self.txt = [l.strip() for l in f.readlines()]
             #self.txt=self.txt.decode('utf-8')
@@ -610,8 +612,8 @@ class TextSource(object):
             lines[i] = ' '*lspace+l+' '*rspace
         return lines
 
-    def get_lines(self, nline, nword, nchar_max, f=0.35, niter=100):
-        def h_lines(niter=100):
+    def get_lines(self, nline, nword, nchar_max, f=0.35, niter=50):
+        def h_lines(niter=50):
             lines = ['']
             iter = 0
             while not np.all(self.is_good(lines,f)) and iter < niter:
@@ -624,7 +626,7 @@ class TextSource(object):
         iter = 0
         while not np.all(self.is_good(lines,f)) and iter < niter:
             iter += 1
-            lines = h_lines(niter=100)
+            lines = h_lines(niter=50)
             # get words per line:
             nline = len(lines)
             for i in range(nline):

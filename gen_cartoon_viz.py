@@ -24,7 +24,6 @@ import cv2 as cv
 import scipy.io as sio
 import time
 from text_utils import *
-from line_profiler import LineProfiler
 import multiprocessing
 ## Define some configuration variables:
 NUM_IMG = -1 # no. of images to use for generation (-1 to use all available):
@@ -97,7 +96,7 @@ def add_res_to_db(imgname,res,db):
     #img = Image.fromarray(db['data'][dname][:])
     '''
 
-def save_res_to_file(imgname,res, filepath='output_data'):
+def save_res_to_file(imgname,res, filepath='5000Data'):
   """
   Add the synthetically generated text image instance
   and other metadata to the file.
@@ -187,7 +186,7 @@ def main1(args):
         img = np.array(img.resize(sz,Image.ANTIALIAS))
         seg = np.array(Image.fromarray(seg).resize(sz,Image.NEAREST))
         print colorize(Color.RED,'%d of %d'%(i,end), bold=True)
-        res = RV3.render_text(img,depth,seg,area,label,imname,data_dir='output_data',
+        res = RV3.render_text(img,depth,seg,area,label,imname,data_dir='5000Data',
                             ninstance=INSTANCE_PER_IMAGE,viz=viz)
         t2=time.time()
         if len(res) > 0:
