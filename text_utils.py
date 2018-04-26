@@ -5,6 +5,7 @@ import scipy.io as sio
 import os.path as osp
 import random, os
 import cv2
+import time
 import cPickle as cp
 import scipy.signal as ssig
 import scipy.stats as sstat
@@ -108,7 +109,7 @@ class RenderFont(object):
 
         # text-source : gets english text:
         self.text_source = TextSource(min_nchar=self.min_nchar,
-                                      fn=osp.join(data_dir,'ad/'))
+                                      fn=osp.join(data_dir,'newsgroup/'))
 
         # get font-state object:
         self.font_state = FontState(data_dir)
@@ -532,8 +533,8 @@ class TextSource(object):
         files= os.listdir(fn)
         # files=files[0:-1]
         #print files
-        # random.shuffle(files)
-        filecnt=10
+        random.shuffle(files)
+        filecnt=2 
         self.txt=[]
         for filename in files:
             filecnt-=1
@@ -549,6 +550,9 @@ class TextSource(object):
                     #print line
                     self.txt.append(line)
         random.shuffle(self.txt)          
+       
+        if len(self.txt) > 60000:
+            self.txt = self.txt[:60000]
         print len(self.txt)
             #self.txt = [l.strip() for l in f.readlines()]
             #self.txt=self.txt.decode('utf-8')
@@ -562,7 +566,7 @@ class TextSource(object):
         # probability to center-align a paragraph:
         self.center_para = 0.5
 
-
+    @profile
     def check_symb_frac(self, txt, f=0.35):
         """
         T/F return : T iff fraction of symbol/special-charcters in
@@ -576,6 +580,7 @@ class TextSource(object):
         return float(chcnt)/(len(txt)+0.0)>f
         #return np.sum([not ch.isalnum() for ch in txt])/(len(txt)+0.0) <= f
 
+    @profile
     def is_good(self, txt, f=0.35):
         """
         T/F return : T iff the lines in txt (a list of txt lines)
@@ -610,21 +615,24 @@ class TextSource(object):
             lines[i] = ' '*lspace+l+' '*rspace
         return lines
 
+    @profile
+    def h_lines(self, f , nline,niter=100):
+        lines = ['']
+        iter = 0
+        while not np.all(self.is_good(lines,f)) and iter < niter:
+            iter += 1
+            line_start = np.random.choice(len(self.txt)-nline)
+            lines = [self.txt[line_start+i] for i in range(nline)]
+        return lines
+
+    @profile
     def get_lines(self, nline, nword, nchar_max, f=0.35, niter=100):
-        def h_lines(niter=100):
-            lines = ['']
-            iter = 0
-            while not np.all(self.is_good(lines,f)) and iter < niter:
-                iter += 1
-                line_start = np.random.choice(len(self.txt)-nline)
-                lines = [self.txt[line_start+i] for i in range(nline)]
-            return lines
 
         lines = ['']
         iter = 0
         while not np.all(self.is_good(lines,f)) and iter < niter:
             iter += 1
-            lines = h_lines(niter=100)
+            lines = self.h_lines(f, nline)
             # get words per line:
             nline = len(lines)
             for i in range(nline):
@@ -689,14 +697,19 @@ class TextSource(object):
         # get number of lines in the paragraph:
         nline = nline_max*sstat.beta.rvs(a=self.p_para_nline[0], b=self.p_para_nline[1])
         nline = max(1, int(np.ceil(nline)))
-
+        
         # get number of words:
         nword = [self.p_para_nword[2]*sstat.beta.rvs(a=self.p_para_nword[0], b=self.p_para_nword[1])
                  for _ in xrange(nline)]
         nword = [max(1,int(np.ceil(n))) for n in nword]
-
+        t1 = time.time()
+        print('nline:',nline)
+        print('nword:',nword)
+        print('nchar_max',nchar_max)
         lines = self.get_lines(nline, nword, nchar_max, f=0.35)
-        # print 'sample_para_output',lines
+        print('lines:')
+        print(lines)
+        print 'sample_para_output',time.time() - t1
         if lines is not None:
             # center align the paragraph-text:
             if np.random.rand() < self.center_para:
