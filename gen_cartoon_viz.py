@@ -321,15 +321,15 @@ if __name__=='__main__':
   p = multiprocessing.Pool()
   # parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
   
-  for i in range(0, 2):
-    # __range = '%d,%d' %(100 * i + 1, 100*(i+1))
-    __range = '%d,%d' %(2 * i + 1, 2*(i+1))
+  for i in range(0, 10):
+    __range = '%d,%d' %(100 * i + 1, 100*(i+1))
+# __range = '%d,%d' %(2 * i + 1, 2*(i+1))
     # __range = '1,3'
     parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
     # parser.add_argument('--multi', default='yes', type=str)
     parser.add_argument('--viz',action='store_true',dest='viz',default=False,help='flag for turning on visualizations') 
     parser.add_argument('--range',default=__range,type=str)
-    parser.add_argument('--output_dir',default = 'test_results_img',type=str)
+    parser.add_argument('--output_dir',default = 'icpr_data_1',type=str)
     args = parser.parse_args()
     p.apply_async(main1, args=(args,))
   # main1(args)
