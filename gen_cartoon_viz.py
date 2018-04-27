@@ -96,7 +96,7 @@ def add_res_to_db(imgname,res,db):
     #img = Image.fromarray(db['data'][dname][:])
     '''
 
-def save_res_to_file(imgname,res, filepath='5000Data'):
+def save_res_to_file(imgname,res, filepath='icdar_3_data'):
   """
   Add the synthetically generated text image instance
   and other metadata to the file.
@@ -186,7 +186,7 @@ def main1(args):
         img = np.array(img.resize(sz,Image.ANTIALIAS))
         seg = np.array(Image.fromarray(seg).resize(sz,Image.NEAREST))
         print colorize(Color.RED,'%d of %d'%(i,end), bold=True)
-        res = RV3.render_text(img,depth,seg,area,label,imname,data_dir='5000Data',
+        res = RV3.render_text(img,depth,seg,area,label,imname,data_dir='icdar_3_data',
                             ninstance=INSTANCE_PER_IMAGE,viz=viz)
         t2=time.time()
         if len(res) > 0:
