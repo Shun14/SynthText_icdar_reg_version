@@ -2,7 +2,7 @@
 import os
 
 def main():
-    rootDir = 'output_data/txt'
+    rootDir = '5000Data/txt'
     dir_list = os.listdir(rootDir)
     all_list = []
     for lists in dir_list:
@@ -16,7 +16,7 @@ def main():
             all_list += lines
 
     print 'all list:',len(all_list)
-    merge_text_tags = open('merge_text.txt', 'w')
+    merge_text_tags = open(os.path.join('5000Data','merge_text.tags'), 'w')
     merge_text_tags.writelines(all_list)
     merge_text_tags.close()
 

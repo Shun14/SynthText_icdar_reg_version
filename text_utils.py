@@ -612,8 +612,8 @@ class TextSource(object):
             lines[i] = ' '*lspace+l+' '*rspace
         return lines
 
-    def get_lines(self, nline, nword, nchar_max, f=0.35, niter=50):
-        def h_lines(niter=50):
+    def get_lines(self, nline, nword, nchar_max, f=0.35, niter=10):
+        def h_lines(niter=10):
             lines = ['']
             iter = 0
             while not np.all(self.is_good(lines,f)) and iter < niter:
@@ -626,7 +626,7 @@ class TextSource(object):
         iter = 0
         while not np.all(self.is_good(lines,f)) and iter < niter:
             iter += 1
-            lines = h_lines(niter=50)
+            lines = h_lines(niter=10)
             # get words per line:
             nline = len(lines)
             for i in range(nline):

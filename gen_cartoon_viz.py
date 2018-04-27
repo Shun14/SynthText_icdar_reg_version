@@ -327,7 +327,7 @@ if __name__=='__main__':
   
   for i in range(0, 10):
     __range = '%d,%d' %(100 * i + 1, 100*(i+1))
-      # __range = '%d,%d' %(2 * i + 1, 2*(i+1))
+    #__range = '%d,%d' %(2 * i + 1, 2*(i+1))
   #  __range = '1,3'
     parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
     # parser.add_argument('--multi', default='yes', type=str)
