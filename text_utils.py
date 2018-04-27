@@ -616,7 +616,7 @@ class TextSource(object):
         return lines
 
     #@profile
-    def h_lines(self, f , nline,niter=1):
+    def h_lines(self, f , nline,niter=100):
         lines = ['']
         iter = 0
         while not np.all(self.is_good(lines,f)) and iter < niter:
@@ -626,7 +626,7 @@ class TextSource(object):
         return lines
 
    # @profile
-    def get_lines(self, nline, nword, nchar_max, f=0.35, niter=1):
+    def get_lines(self, nline, nword, nchar_max, f=0.35, niter=100):
 
         lines = ['']
         iter = 0
