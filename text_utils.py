@@ -517,6 +517,11 @@ class FontState(object):
         font.origin = True
         return font
 
+@profile
+def is_txt(l):
+    char_ex = ['i','I','o','O','0','-']
+    chs = [ch in char_ex for ch in l]
+    return not np.all(chs)
 
 class TextSource(object):
     """
@@ -566,7 +571,7 @@ class TextSource(object):
         # probability to center-align a paragraph:
         self.center_para = 0.5
 
-    #@profile
+    @profile
     def check_symb_frac(self, txt, f=0.35):
         """
         T/F return : T iff fraction of symbol/special-charcters in
@@ -580,7 +585,7 @@ class TextSource(object):
         return float(chcnt)/(len(txt)+0.0)>f
         #return np.sum([not ch.isalnum() for ch in txt])/(len(txt)+0.0) <= f
 
-    #@profile
+    @profile
     def is_good(self, txt, f=0.35):
         """
         T/F return : T iff the lines in txt (a list of txt lines)
@@ -591,10 +596,6 @@ class TextSource(object):
                          3. Has at-least self.min_nchar characters
                          4. Not all characters are i,x,0,O,-
         """
-        def is_txt(l):
-            char_ex = ['i','I','o','O','0','-']
-            chs = [ch in char_ex for ch in l]
-            return not np.all(chs)
 
         return [ (len(l)> self.min_nchar
                  and self.check_symb_frac(l,f)
@@ -615,8 +616,8 @@ class TextSource(object):
             lines[i] = ' '*lspace+l+' '*rspace
         return lines
 
-    #@profile
-    def h_lines(self, f , nline,niter=50):
+    @profile
+    def h_lines(self, f , nline,niter=10):
         lines = ['']
         iter = 0
         while not np.all(self.is_good(lines,f)) and iter < niter:
@@ -625,8 +626,8 @@ class TextSource(object):
             lines = [self.txt[line_start+i] for i in range(nline)]
         return lines
 
-   # @profile
-    def get_lines(self, nline, nword, nchar_max, f=0.35, niter=50):
+    @profile
+    def get_lines(self, nline, nword, nchar_max, f=0.35, niter=10):
 
         lines = ['']
         iter = 0
