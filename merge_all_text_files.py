@@ -3,21 +3,19 @@ import os
 import os.path as osp
 def main(args):
     
-    rootDir = os.path.join(args.datadir, 'txt')
+    rootDir = os.path.join(args.datadir, 'total_txt')
     dir_list = os.listdir(rootDir)
     all_list = []
     for lists in dir_list:
-        path = os.path.join(rootDir, lists)
         # print path
-        for txt in os.listdir(path):
-            txt_path = os.path.join(path, txt)
+        txt_path = osp.join(rootDir,lists)
             # print txt_path
-            file = open(txt_path, 'r')
-            lines = file.readlines()
-            all_list += lines
+        file = open(txt_path, 'r')
+        lines = file.readlines()
+        all_list += lines
 
     print 'all list:',len(all_list)
-    merge_text_tags = open( osp.join(args.datadir, 'merge_text.tags'), 'w')
+    merge_text_tags = open( osp.join('.','merge_text.tags'), 'w')
     merge_text_tags.writelines(all_list)
     merge_text_tags.close()
 
