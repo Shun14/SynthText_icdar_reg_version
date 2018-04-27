@@ -4,7 +4,7 @@ from common import *
 import sys,time
 
 def main(args):
-  dataDir = args.datadir
+  dataDir = os.path.join(args.datadir,'total_img')
   total_num = args.total_num
   allCount = 0
   unit_time = 30.0
@@ -20,7 +20,7 @@ def main(args):
 if __name__=='__main__':
   import argparse
   parser = argparse.ArgumentParser(description='Count the results')
-  parser.add_argument('--datadir', default='5000Data/total_img', type=str)
+  parser.add_argument('--datadir', default='output_data', type=str)
   parser.add_argument('--total_num', default=5000, type=int)
   args = parser.parse_args()
   main(args)

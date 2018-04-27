@@ -28,7 +28,7 @@ import multiprocessing
 ## Define some configuration variables:
 NUM_IMG = -1 # no. of images to use for generation (-1 to use all available):
 INSTANCE_PER_IMAGE = 5# no. of times to use the same image
-SECS_PER_IMG = 5 #max time per image in seconds
+SECS_PER_IMG = 10 #max time per image in seconds
 
 # path to the data-file, containing image, depth and segmentation:
 DATA_PATH = 'data'
@@ -101,9 +101,7 @@ def save_res_to_file(imgname,res, filepath='icdar_3_data'):
   Add the synthetically generated text image instance
   and other metadata to the file.
   """
-
   img_path = os.path.join(filepath, 'total_img')
-  
   if not os.path.exists(img_path):
     os.makedirs(img_path)
   
@@ -144,6 +142,7 @@ def parse_txt(txt_name):
 def main1(args):
   viz = args.viz
   ranges = args.range
+  out_dir = args.output_dir
 # def main1(viz=False,ranges='0,100'):
   
   # OUT_FILE = 'results/icdar_%s_%s.h5'%(ranges.split(',')[0],ranges.split(',')[1])
@@ -186,13 +185,13 @@ def main1(args):
         img = np.array(img.resize(sz,Image.ANTIALIAS))
         seg = np.array(Image.fromarray(seg).resize(sz,Image.NEAREST))
         print colorize(Color.RED,'%d of %d'%(i,end), bold=True)
-        res = RV3.render_text(img,depth,seg,area,label,imname,data_dir='icdar_3_data',
+        res = RV3.render_text(img,depth,seg,area,label, imname,data_dir=out_dir,
                             ninstance=INSTANCE_PER_IMAGE,viz=viz)
         t2=time.time()
         if len(res) > 0:
           #TODO multi thread
           # add_res_to_db(imname, res, out_db)
-          save_res_to_file(imname, res)
+          save_res_to_file(imname, res, out_dir)
         print '*********time consume in each pic',(t2-t1)/INSTANCE_PER_IMAGE
         print ('img length:', i/(end-start))
         if viz:
@@ -202,7 +201,7 @@ def main1(args):
         traceback.print_exc()
         print colorize(Color.GREEN,'>>>> CONTINUING....', bold=True)
         continue
-  out_db.close()
+  #out_db.close()
 
    
 def main(viz=False):
@@ -314,27 +313,26 @@ def main(viz=False):
 
 if __name__=='__main__':
   import argparse
-  
-  
   argsList = []
   #multipy
   startTime = time.time()
-  
   # if args.multi == 'yes':
   print 'Parent process %s' % os.getpid()
   p = multiprocessing.Pool()
   # parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
   
-  for i in range(0, 10):
-    __range = '%d,%d' %(100 * i + 1, 100*(i+1))
-    #__range = '%d,%d' %(2 * i + 1, 2*(i+1))
-  #  __range = '1,3'
+  for i in range(0, 2):
+    # __range = '%d,%d' %(100 * i + 1, 100*(i+1))
+    __range = '%d,%d' %(2 * i + 1, 2*(i+1))
+    # __range = '1,3'
     parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
     # parser.add_argument('--multi', default='yes', type=str)
     parser.add_argument('--viz',action='store_true',dest='viz',default=False,help='flag for turning on visualizations') 
     parser.add_argument('--range',default=__range,type=str)
+    parser.add_argument('--output_dir',default = 'test_results_img',type=str)
     args = parser.parse_args()
     p.apply_async(main1, args=(args,))
+  # main1(args)
   print 'waiting for all done'
   p.close()
   p.join()

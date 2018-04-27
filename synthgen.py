@@ -9,8 +9,8 @@ from __future__ import division
 import sys
 reload(sys) 
 sys.setdefaultencoding('utf-8') 
-
-
+import math
+import time
 import copy
 import cv2
 import os
@@ -346,6 +346,74 @@ def save_tags_to_txt(data_dir, img_name, instance, write_lines):
     file.writelines(write_lines)
     file.close()
 
+def save_bbox_to_txt(data_dir, img_name, instance, write_lines):
+    txt_path = os.path.join(data_dir, 'total_txt')
+    if not os.path.exists(txt_path):
+        os.makedirs(txt_path)
+
+    crop_txt_path = txt_path + '/' +img_name+'_' + str(instance) + '.txt'
+    print (crop_txt_path)
+    file = open(crop_txt_path, 'w')
+    file.writelines(write_lines)
+    file.close()
+
+def general_crop(image, tile, reverse_tile=False, margin_ratio=0.2):
+    """Crop the image giving a tile.
+    Note: 
+    Args:
+        image: Image to be crop, [h, w, c].
+        tile: [p_0, p_1, p_2, p_3] (clockwise).
+
+    Returns:
+        cropped: Patch corresponding to the tile.
+
+    Raises:
+        ZeroDivisionError: x[1] == x[0] or x[2] == x[3].
+    """
+    if reverse_tile:
+        tile[1:] = tile[::-1][:3] 
+    x = [p[0] for p in tile]
+    y = [p[1] for p in tile]
+    # phase1:shift the center of patch to image center
+    x_center = int(round(sum(x) / 4))
+    y_center = int(round(sum(y) / 4))
+    im_center = [int(round(coord / 2)) for coord in image.shape[:2]]
+    shift = [im_center[0] - y_center, im_center[1] - x_center]
+    M = np.float32([[1, 0, shift[1]], [0, 1, shift[0]]])
+    height, width = image.shape[:2]
+    im_shift = cv2.warpAffine(image, M, (width, height))
+
+    # phase2:imrote the im_shift to regular the box
+    bb_width = (math.sqrt((y[1] - y[0]) ** 2 + (x[1] - x[0]) ** 2) +
+                math.sqrt((y[3] - y[2]) ** 2 + (x[3] - x[2]) ** 2)) / 2
+    bb_height = (math.sqrt((y[3] - y[0]) ** 2 + (x[3] - x[0]) ** 2) +
+                 math.sqrt((y[2] - y[1]) ** 2 + (x[2] - x[1]) ** 2)) / 2
+    if bb_width > bb_height:  # main direction is horizental
+        tan = ((y[1] - y[0]) / float(x[1] - x[0] + 1e-8) +
+               (y[2] - y[3]) / float(x[2] - x[3] + 1e-8)) / 2
+        degree = math.atan(tan) / math.pi * 180
+    else:  # main direction is vertical
+        tan = ((y[1] - y[2]) / float(x[1] - x[2] + 1e-8) +
+               (y[0] - y[3]) / float(x[0] - x[3] + 1e-8)) / 2
+        # degree = 90 + math.atan(tan) / math.pi * 180
+        degree = math.atan(tan) / math.pi * 180 - np.sign(tan) * 90
+    rotation_matrix = cv2.getRotationMatrix2D(
+        (width / 2, height / 2), degree, 1)
+    im_rotate = cv2.warpAffine(im_shift, rotation_matrix, (width, height))
+    # phase3:crop the box out.
+    x_min = im_center[1] - int(round(bb_width / 2))
+    x_max = im_center[1] + int(round(bb_width / 2))
+    y_min = im_center[0] - int(round(bb_height / 2))
+    y_max = im_center[0] + int(round(bb_height / 2))
+    # phase4: add some margin
+    margin_x = int(round((x_max - x_min) * margin_ratio / 2))
+    margin_y = int(round((y_max - y_min) * margin_ratio / 2))
+    x_min = max(0, x_min - margin_x)
+    y_min = max(0, y_min - margin_y)
+    x_max = min(width, x_max + margin_x)
+    y_max = min(height, y_max + margin_y)
+    return im_rotate[y_min:y_max, x_min:x_max, :]
+
 def viz_masks(fignum,rgb,seg,depth,label):
     """
     img,depth,seg are images of the same size.
@@ -554,6 +622,7 @@ class RendererV3(object):
             ksz = 5
         return cv2.GaussianBlur(text_mask,(ksz,ksz),bsz)
 
+    
     def place_text(self,rgb,collision_mask,H,Hinv):
         font = self.text_renderer.font_state.sample()
         font = self.text_renderer.font_state.init_font(font)
@@ -606,12 +675,13 @@ class RendererV3(object):
         else:
             rnd = np.random.beta(5.0,1.0)
         return int(np.ceil(nmax * rnd))
-
+    
+    
     def crop_text_from_img(self, img, text, bb, img_name, instance, idx,data_dir):
         img_path = os.path.join( os.getcwd(), data_dir, 'img' ,img_name)
         if not os.path.exists(img_path):
             os.makedirs(img_path)
-        img_copy = cv2.cvtColor(copy.copy(img), cv2.cv.CV_RGB2BGR)
+        # img_copy = cv2.cvtColor(copy.copy(img), cv2.cv.CV_RGB2BGR)
         wrds = text.split()#text
         write_txt_list = []
         word_bbox = self.char2wordBB(bb, text)
@@ -621,25 +691,29 @@ class RendererV3(object):
         if word_bbox.shape[2] != len(wrds):
             print('!!!!!!!!!@@@error@@@!!!!!!!:',word_bbox.shape, len(wrds))
         write_lines = []
+        write_point_list = []
         
         for i in xrange(len(wrds)):
             wordBB = word_bbox[:,:,i]
-            X_min = int(wordBB[0].min())
-            X_max = int(wordBB[0].max())
-            Y_min = int(wordBB[1].min())
-            Y_max = int(wordBB[1].max())
-            # print('***X-min***')
-            # print(X_min, X_max, Y_max, Y_min)
-            crop_img = img_copy[Y_min:Y_max, X_min:X_max]
-            # print('crop+img.shape',crop_img.shape)
-            __range = '/img_%s_%s_%s' % (str(instance), str(idx), str(i))
-            crop_img_path = img_path + __range + '.jpg'
-            cv2.imwrite(crop_img_path,crop_img)
-            # print('copImgPath:',crop_img_path)
-            # print(crop_img_path +' ' +wrds[i] +'\n')
-            write_lines.append(crop_img_path +' ' +wrds[i] + '\n')
+            xs = wordBB[0]
+            ys = wordBB[1]
+            write_point = []
+
+            write_point = wordBB[:,0].tolist()+wordBB[:,1].tolist() + wordBB[:,2].tolist()+wordBB[:,3].tolist()
+            p_bbox_text = ','.join(str(p) for p in write_point) + ' ' +wrds[i] +'\n'
+
+            #crop image
+            # tile = [(x, y) for (x, y) in zip(xs, ys)]
+            # crop_img = general_crop(img_copy, tile)
+            # __range = '/img_%s_%s_%s' % (str(instance), str(idx), str(i))
+            # crop_img_path = img_path + __range + '.jpg'
+            # cv2.imwrite(crop_img_path,crop_img)
+
+            # write_lines.append(crop_img_path +' ' +wrds[i] + '\n')
+            write_point_list.append(p_bbox_text)
             # file.write(crop_img_path +' ' +wrds[i] +'\n')
-        return write_lines
+            
+        return write_lines, write_point_list
 
     # for i in xrange(bb.shape[2]):
     #     if list_text[i] != '\n':
@@ -762,7 +836,7 @@ class RendererV3(object):
             itext = []
             ibb = []
             tags_lines_list = []
-
+            total_bbox_text_list = []
             # process regions: 
             num_txt_regions = len(reg_idx)
             NUM_REP = 5 # re-use each region three times:
@@ -793,8 +867,9 @@ class RendererV3(object):
                     # update the region collision mask:
                     place_masks[ireg] = collision_mask
                     # store the result:
-                    txt_lines = self.crop_text_from_img(img, text, bb, imgname, i, idx,data_dir)
-                    tags_lines_list += txt_lines
+                    txt_lines, write_point_list= self.crop_text_from_img(img, text, bb, imgname, i, idx,data_dir)
+                    # tags_lines_list += txt_lines
+                    total_bbox_text_list += write_point_list
                     itext.append(text)
                     ibb.append(bb)
                     # print colorize(Color.GREEN, 'text in synthgen.py/render_text append into itext '+text)
@@ -806,8 +881,8 @@ class RendererV3(object):
                 idict['charBB'] = np.concatenate(ibb, axis=2)
                 idict['wordBB'] = self.char2wordBB(idict['charBB'].copy(), ' '.join(itext))
                 # print colorize(Color.GREEN, itext)
-                save_tags_to_txt(data_dir, imgname, i, tags_lines_list)
-                
+                # save_tags_to_txt(data_dir, imgname, i, tags_lines_list)
+                save_bbox_to_txt(data_dir, imgname, i, total_bbox_text_list)
                 res.append(idict.copy())
                 if viz:
                     viz_textbb(1,img, [idict['wordBB']], alpha=1.0)

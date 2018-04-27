@@ -5,6 +5,7 @@ import scipy.io as sio
 import os.path as osp
 import random, os
 import cv2
+import time
 import cPickle as cp
 import scipy.signal as ssig
 import scipy.stats as sstat
@@ -516,6 +517,10 @@ class FontState(object):
         font.origin = True
         return font
 
+def is_txt(l):
+    char_ex = ['i','I','o','O','0','-']
+    chs = [ch in char_ex for ch in l]
+    return not np.all(chs)
 
 class TextSource(object):
     """
@@ -533,7 +538,7 @@ class TextSource(object):
         # files=files[0:-1]
         #print files
         random.shuffle(files)
-        filecnt=5
+        filecnt=2 
         self.txt=[]
         for filename in files:
             filecnt-=1
@@ -564,7 +569,6 @@ class TextSource(object):
         # probability to center-align a paragraph:
         self.center_para = 0.5
 
-
     def check_symb_frac(self, txt, f=0.35):
         """
         T/F return : T iff fraction of symbol/special-charcters in
@@ -588,10 +592,6 @@ class TextSource(object):
                          3. Has at-least self.min_nchar characters
                          4. Not all characters are i,x,0,O,-
         """
-        def is_txt(l):
-            char_ex = ['i','I','o','O','0','-']
-            chs = [ch in char_ex for ch in l]
-            return not np.all(chs)
 
         return [ (len(l)> self.min_nchar
                  and self.check_symb_frac(l,f)
@@ -651,7 +651,7 @@ class TextSource(object):
         # print 'sample_output',self.fdict[kind](nline_max,nchar_max)
         return self.fdict[kind](nline_max,nchar_max)
         
-    def sample_word(self,nline_max,nchar_max,niter=100):
+    def sample_word(self,nline_max,nchar_max,niter=50):
         rand_line = self.txt[np.random.choice(len(self.txt))]                
         words = rand_line.split()
         rand_word = random.choice(words)
@@ -691,14 +691,12 @@ class TextSource(object):
         # get number of lines in the paragraph:
         nline = nline_max*sstat.beta.rvs(a=self.p_para_nline[0], b=self.p_para_nline[1])
         nline = max(1, int(np.ceil(nline)))
-
+        
         # get number of words:
         nword = [self.p_para_nword[2]*sstat.beta.rvs(a=self.p_para_nword[0], b=self.p_para_nword[1])
                  for _ in xrange(nline)]
         nword = [max(1,int(np.ceil(n))) for n in nword]
-
         lines = self.get_lines(nline, nword, nchar_max, f=0.35)
-        # print 'sample_para_output',lines
         if lines is not None:
             # center align the paragraph-text:
             if np.random.rand() < self.center_para:
