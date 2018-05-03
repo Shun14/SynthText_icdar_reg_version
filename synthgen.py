@@ -304,7 +304,9 @@ def get_text_placement_mask(xyz,mask,plane,pad=2,viz=False):
     ROW = np.max(ssd.pdist(np.atleast_2d(boxR[:,0]).T))
     COL = np.max(ssd.pdist(np.atleast_2d(boxR[:,1]).T))
 
+
     place_mask = 255*np.ones((np.ceil(COL)+pad,np.ceil(ROW)+pad),'uint8')
+
 
     pts_fp_i32 = [(pts_fp[i]+minxy[None,:]).astype('int32') for i in xrange(len(pts_fp))]
     cv2.drawContours(place_mask,pts_fp_i32,-1,0,
@@ -789,16 +791,21 @@ class RendererV3(object):
         """
         try:
             # depth -> xyz
+            t1 = time.time()
             xyz = su.DepthCamera.depth2xyz(depth)
-            
+            print('xyz time:',time.time() - t1)
             # find text-regions:
+            t1 = time.time()
             regions = TextRegions.get_regions(xyz,seg,area,label)
-
+            print('get_regions time:', time.time() - t1)
             # find the placement mask and homographies:
+            t1 = time.time()
             regions = self.filter_for_placement(xyz,seg,regions)
-
+            print('filter_for_placement time:', time.time() - t1)
             # finally place some text:
+            t1 = time.time()
             nregions = len(regions['place_mask'])
+            print('nregions time:', time.time() - t1)
             if nregions < 1: # no good region to place text on
                 return []
         except:

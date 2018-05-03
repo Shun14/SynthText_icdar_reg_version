@@ -13,6 +13,8 @@ Entry-point for generating synthetic text images, as described in:
     }
 """
 
+import matplotlib
+matplotlib.use('Agg')
 import numpy as np
 import h5py
 import os, sys, traceback
@@ -29,7 +31,9 @@ import multiprocessing
 ## Define some configuration variables:
 NUM_IMG = -1 # no. of images to use for generation (-1 to use all available):
 INSTANCE_PER_IMAGE = 5# no. of times to use the same image
-SECS_PER_IMG = 5 #max time per image in seconds
+
+SECS_PER_IMG = None#max time per image in seconds
+
 
 # path to the data-file, containing image, depth and segmentation:
 DATA_PATH = 'data'
@@ -326,20 +330,21 @@ if __name__=='__main__':
   print 'Parent process %s' % os.getpid()
   #p = multiprocessing.Pool()
   # parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
-  
-  #for i in range(0, 5):
-    #__range = '%d,%d' %(100 * i + 1, 100*(i+1))
-   # __range = '%d,%d' %(2 * i + 1, 2*(i+1))
-  __range = '1,2'
-  parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
-    # parser.add_argument('--multi', default='yes', type=str)
-  parser.add_argument('--viz',action='store_true',dest='viz',default=False,help='flag for turning on visualizations') 
-  parser.add_argument('--range',default=__range,type=str)
-  parser.add_argument('--output_dir',default = 'test_results_img',type=str)
-  args = parser.parse_args()
-  #  p.apply_async(main1, args=(args,))
-  main1(args)
-  print 'waiting for all done'
+
+
+#   #for i in range(0, 5):
+#     #__range = '%d,%d' %(100 * i + 1, 100*(i+1))
+#    # __range = '%d,%d' %(2 * i + 1, 2*(i+1))
+#   __range = '1,2'
+#   parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
+#     # parser.add_argument('--multi', default='yes', type=str)
+#   parser.add_argument('--viz',action='store_true',dest='viz',default=False,help='flag for turning on visualizations')
+#   parser.add_argument('--range',default=__range,type=str)
+#   parser.add_argument('--output_dir',default = 'test_results_img',type=str)
+#   args = parser.parse_args()
+#   #  p.apply_async(main1, args=(args,))
+#   main1(args)
+#   print 'waiting for all done'
   #p.close()
   #p.join()
   # elif args.multi == 'no':
@@ -347,8 +352,30 @@ if __name__=='__main__':
   #   parser.add_argument('--viz',action='store_true',dest='viz',default=False,help='flag for turning on visualizations')
   #   parser.add_argument('--range',default='101,102',type=str)
 
-  #   args = parser.parse_args()
-  #   main1(args)
+#   for i in range(0, 10):
+#     __range = '%d,%d' %(100 * i + 1, 100*(i+1))
+# # __range = '%d,%d' %(2 * i + 1, 2*(i+1))
+#     # __range = '1,3'
+#     parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
+#     # parser.add_argument('--multi', default='yes', type=str)
+#     parser.add_argument('--viz',action='store_true',dest='viz',default=False,help='flag for turning on visualizations')
+#     parser.add_argument('--range',default=__range,type=str)
+#     parser.add_argument('--output_dir',default = 'icpr_data_1',type=str)
+#     args = parser.parse_args()
+#     p.apply_async(main1, args=(args,))
+#   # main1(args)
+#   print 'waiting for all done'
+#   p.close()
+#   p.join()
+
+
+  # elif args.multi == 'no':
+  parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
+  parser.add_argument('--viz',action='store_true',dest='viz',default=False,help='flag for turning on visualizations')
+  parser.add_argument('--range',default='101,102',type=str)
+  parser.add_argument('--output_dir', default='icpr_data_1', type=str)
+  args = parser.parse_args()
+  main1(args)
 
   # else:
   #     print 'error, no muti'

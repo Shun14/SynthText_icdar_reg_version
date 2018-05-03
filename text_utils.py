@@ -109,7 +109,7 @@ class RenderFont(object):
 
         # text-source : gets english text:
         self.text_source = TextSource(min_nchar=self.min_nchar,
-                                      fn=osp.join(data_dir,'newsgroup/'))
+                                      fn=osp.join(data_dir,'newsgroup/new_text.txt'))
 
         # get font-state object:
         self.font_state = FontState(data_dir)
@@ -141,18 +141,18 @@ class RenderFont(object):
         space = font.get_rect('O')
         x, y = 0, 0
         for l in lines:
-            x = 0 # carriage-return
-            y += line_spacing # line-feed
+            y = 0 # carriage-return
+            x += line_spacing # line-feed
 
             for ch in l: # render each character
                 if ch.isspace(): # just shift
-                    x += space.width
+                    y += space.height
                 else:
                     # render the character
                     ch_bounds = font.render_to(surf, (x,y), ch)
-                    ch_bounds.x = x + ch_bounds.x
-                    ch_bounds.y = y - ch_bounds.y
-                    x += ch_bounds.width
+                    ch_bounds.x = x - ch_bounds.x
+                    ch_bounds.y = y + ch_bounds.y
+                    y += ch_bounds.height
                     bbs.append(np.array(ch_bounds))
 
         # get the union of characters for cropping:
@@ -166,7 +166,7 @@ class RenderFont(object):
         bbs = np.array(bbs)
         surf_arr, bbs = crop_safe(pygame.surfarray.pixels_alpha(surf), rect_union, bbs, pad=5)
         surf_arr = surf_arr.swapaxes(0,1)
-        #self.visualize_bb(surf_arr,bbs)
+        # self.visualize_bb(surf_arr,bbs)
         return surf_arr, words, bbs
 
     def render_curved(self, font, word_text):
@@ -371,7 +371,8 @@ class RenderFont(object):
             # sample text:
             # text_type = sample_weighted(self.p_text)
             # text = self.text_source.sample(nline,nchar,text_type)
-            text = self.text_source.sample(nline,nchar,'PARA')
+            text = self.text_source.sample_para(nline,nchar)
+            # text = self.text_source.sample_para(nline, nchar)
             #text = self.text_source.sample(nline,nchar,'WORD')
             # print 'before the if judge',text
             if len(text)==0:
@@ -386,6 +387,7 @@ class RenderFont(object):
             #print colorize(Color.GREEN, text)
 
             # render the text:
+
             txt_arr,txt,bb = self.render_curved(font, text)
             bb = self.bb_xywh2coords(bb)
 
@@ -405,7 +407,7 @@ class RenderFont(object):
     def visualize_bb(self, text_arr, bbs):
         ta = text_arr.copy()
         for r in bbs:
-            cv.rectangle(ta, (r[0],r[1]), (r[0]+r[2],r[1]+r[3]), color=128, thickness=1)
+            cv2.rectangle(ta, (r[0],r[1]), (r[0]+r[2],r[1]+r[3]), color=128, thickness=1)
         plt.imshow(ta,cmap='gray')
         plt.show()
 
@@ -534,18 +536,19 @@ class TextSource(object):
         self.fdict = {'WORD':self.sample_word,
                       'LINE':self.sample_line,
                       'PARA':self.sample_para}
-        files= os.listdir(fn)
+        # files= os.listdir(fn)
         # files=files[0:-1]
         #print files
-        random.shuffle(files)
-        filecnt=2 
+        # random.shuffle(files)
+        # filecnt=2
         self.txt=[]
+        files = [fn]
         for filename in files:
-            filecnt-=1
-            if filecnt==0:
-                break            
+            # filecnt-=1
+            # if filecnt==0:
+            #     break
             fc=filename.decode('utf-8')
-            fc=fn+fc
+            # fc=fn+fc
             print fc
             with open(fc,'r') as f:
                 for l in f.readlines():
