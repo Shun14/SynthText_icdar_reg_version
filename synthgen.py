@@ -210,47 +210,6 @@ def rescale_frontoparallel(p_fp,box_fp,p_im):
         s = 1.0
     return s
 
-# def crop_text_from_img(img, text, bb, img_name, instance, idx,data_dir):
-#     txt_path = os.path.join(data_dir, 'txt' ,img_name)
-#     img_path = os.path.join(data_dir, 'img' ,img_name)
-#     if not os.path.exists(txt_path):
-#         os.makedirs(txt_path)
-#     if not os.path.exists(img_path):
-#         os.makedirs(img_path)
-#     img_copy = copy.copy(img)
-#     list_text = list(text)
-#     write_txt_list = []
-#     crop_txt_path = txt_path + '/txt_' + str(instance) + '.txt'
-#     word_bbox = self.char2wordBB(bb, text)
-    
-#     print(text)
-#     print(word_bbox)
-#     for i in xrange(word_bbox.shape[2]):
-#         wordBB = word_bbox[:,:,i]
-#         X_min = int(character_bbox[0].min())
-#         X_max = int(character_bbox[0].max())
-#         Y_min = int(character_bbox[1].min())
-#         Y_max = int(character_bbox[1].max())
-#         print(X_min, X_max, Y_max, Y_min)
-#         crop_img = img_copy[X_min:X_max, Y_min:Y_max]
-#         # print('crop+img.shape',crop_img.shape)
-#         __range = '/img_%s_%s_%s' % (str(instance), str(idx), str(i))
-#         crop_img_path = img_path + __range + '.jpg'
-        
-    # for i in xrange(bb.shape[2]):
-    #     if list_text[i] != '\n':
-    #         character_bbox = bb[:,:,i]
-    #         write_txt_list.append()
-    #         X_min = int(character_bbox[0].min())
-    #         X_max = int(character_bbox[0].max())
-    #         Y_min = int(character_bbox[1].min())
-    #         Y_max = int(character_bbox[1].max())
-    #         crop_img = img_copy[X_min:X_max, Y_min:Y_max]
-    #         print('crop+img.shape',crop_img.shape)
-    #         __range = '/img_%s_%s_%s' % (str(instance), str(idx), str(i))
-    #         crop_img_path = img_path + __range + '.jpg'
-    #         cv2.imwrite(crop_img_path,cv2.cvtColor(crop_img, cv2.cv.CV_RGB2BGR))
-
 
 def get_text_placement_mask(xyz,mask,plane,pad=2,viz=False):
     """
@@ -304,7 +263,7 @@ def get_text_placement_mask(xyz,mask,plane,pad=2,viz=False):
     ROW = np.max(ssd.pdist(np.atleast_2d(boxR[:,0]).T))
     COL = np.max(ssd.pdist(np.atleast_2d(boxR[:,1]).T))
 
-    place_mask = 255*np.ones((np.ceil(COL)+pad,np.ceil(ROW)+pad),'uint8')
+    place_mask = 255*np.ones((int(np.ceil(COL))+pad,int(np.ceil(ROW))+pad),'uint8')
 
     pts_fp_i32 = [(pts_fp[i]+minxy[None,:]).astype('int32') for i in xrange(len(pts_fp))]
     cv2.drawContours(place_mask,pts_fp_i32,-1,0,

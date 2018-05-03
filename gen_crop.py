@@ -184,7 +184,7 @@ def get_icpr_crop_data(datadir):
     tags_train_fo.close()
     tags_test_fo.close()
     print('succed:', total_num - error_num)
-    print('crop_total_num:',crop_total_num)
+    print('crop_total_num:',total_crop_num)
     print('finished!!')
 
 if __name__ == "__main__":
