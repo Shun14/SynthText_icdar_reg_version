@@ -93,7 +93,7 @@ def test_icpr_crop():
             cv2.imwrite(crop_image_path, crop_image)
 
 def get_icpr_crop_data(datadir):
-    root_dir = '/home/zsz/datasets/ICPR/' + datadir
+    root_dir = '/home/zhishengzou/datasets/ICPR/' + datadir
     image_dir = os.path.join(root_dir, 'total_img') 
     txt_dir = os.path.join(root_dir, 'total_txt')
 
@@ -189,5 +189,5 @@ def get_icpr_crop_data(datadir):
 
 if __name__ == "__main__":
     # test_rctw_crop()
-    get_icpr_crop_data('icpr_data_4')
+    get_icpr_crop_data('icpr_data_38')
 
