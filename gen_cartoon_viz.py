@@ -27,7 +27,7 @@ from text_utils import *
 import multiprocessing
 ## Define some configuration variables:
 NUM_IMG = -1 # no. of images to use for generation (-1 to use all available):
-INSTANCE_PER_IMAGE = 5# no. of times to use the same image
+INSTANCE_PER_IMAGE = 1# no. of times to use the same image
 SECS_PER_IMG = 10 #max time per image in seconds
 
 # path to the data-file, containing image, depth and segmentation:
@@ -322,14 +322,14 @@ if __name__=='__main__':
   # parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
   
   for i in range(0, 10):
-    __range = '%d,%d' %(100 * i + 1, 100*(i+1))
-# __range = '%d,%d' %(2 * i + 1, 2*(i+1))
+    # __range = '%d,%d' %(100 * i + 1, 100*(i+1))
+    __range = '%d,%d' %(2 * i + 1, 2*(i+1))
     # __range = '1,3'
     parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
     # parser.add_argument('--multi', default='yes', type=str)
     parser.add_argument('--viz',action='store_true',dest='viz',default=False,help='flag for turning on visualizations') 
     parser.add_argument('--range',default=__range,type=str)
-    parser.add_argument('--output_dir',default = 'icpr_data_1',type=str)
+    parser.add_argument('--output_dir',default = 'icpr_data_x',type=str)
     args = parser.parse_args()
     p.apply_async(main1, args=(args,))
   # main1(args)

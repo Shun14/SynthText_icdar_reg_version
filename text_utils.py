@@ -130,29 +130,31 @@ class RenderFont(object):
         lengths = [len(l) for l in lines]
 
         # font parameters:
-        line_spacing = font.get_sized_height() + 1
+        line_spacing = font.get_sized_height() + 2
         
         # initialize the surface to proper size:
         line_bounds = font.get_rect(lines[np.argmax(lengths)])
-        fsize = (round(2.0*line_bounds.width), round(1.25*line_spacing*len(lines)))
+        fsize = (round(1.25*line_spacing*len(lines)), round(2 * line_bounds.width))
+        # fsize = (round(2.0*line_bounds.width), round(1.25*line_spacing*len(lines)))
+
         surf = pygame.Surface(fsize, pygame.locals.SRCALPHA, 32)
 
         bbs = []
         space = font.get_rect('O')
         x, y = 0, 0
         for l in lines:
-            x = 0 # carriage-return
-            y += line_spacing # line-feed
+            y = 0 # carriage-return
+            x += line_spacing # line-feed
 
             for ch in l: # render each character
                 if ch.isspace(): # just shift
-                    x += space.width
+                    y += space.width
                 else:
                     # render the character
                     ch_bounds = font.render_to(surf, (x,y), ch)
-                    ch_bounds.x = x + ch_bounds.x
-                    ch_bounds.y = y - ch_bounds.y
-                    x += ch_bounds.width
+                    ch_bounds.x = x - ch_bounds.x
+                    ch_bounds.y = y + ch_bounds.y
+                    y += ch_bounds.height
                     bbs.append(np.array(ch_bounds))
 
         # get the union of characters for cropping:
@@ -166,7 +168,9 @@ class RenderFont(object):
         bbs = np.array(bbs)
         surf_arr, bbs = crop_safe(pygame.surfarray.pixels_alpha(surf), rect_union, bbs, pad=5)
         surf_arr = surf_arr.swapaxes(0,1)
-        #self.visualize_bb(surf_arr,bbs)
+        self.visualize_bb(surf_arr,bbs)
+        if 'q' in raw_input(colorize(Color.RED,'continue? (enter to continue, q to exit): ',True)):
+            print('wait')
         return surf_arr, words, bbs
 
     def render_curved(self, font, word_text):
@@ -176,8 +180,8 @@ class RenderFont(object):
         wl = len(word_text)
         isword = len(word_text.split())==1
 
-        # do curved iff, the length of the word <= 10
-        if not isword or wl > 10 or np.random.rand() > self.p_curved:
+        # do curved iff, the length of the word <= 5
+        if not isword or wl > 5 or np.random.rand() > self.p_curved:
             return self.render_multiline(font, word_text)
 
         # create the surface:
@@ -405,7 +409,7 @@ class RenderFont(object):
     def visualize_bb(self, text_arr, bbs):
         ta = text_arr.copy()
         for r in bbs:
-            cv.rectangle(ta, (r[0],r[1]), (r[0]+r[2],r[1]+r[3]), color=128, thickness=1)
+            cv2.rectangle(ta, (r[0],r[1]), (r[0]+r[2],r[1]+r[3]), color=128, thickness=1)
         plt.imshow(ta,cmap='gray')
         plt.show()
 

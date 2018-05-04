@@ -189,5 +189,5 @@ def get_icpr_crop_data(datadir):
 
 if __name__ == "__main__":
     # test_rctw_crop()
-    get_icpr_crop_data('icpr_data_4')
+    get_icpr_crop_data('icpr_data_44')
 
