@@ -189,5 +189,9 @@ def get_icpr_crop_data(datadir):
 
 if __name__ == "__main__":
     # test_rctw_crop()
-    get_icpr_crop_data('icpr_data_4')
+    import argparse
+    parser = argparse.ArgumentParser(description='Crop for bbox')
+    parser.add_argument('--name', default='icpr_data_x', type=str)
+    args = parser.parse_args()
+    get_icpr_crop_data(args.name)
 
