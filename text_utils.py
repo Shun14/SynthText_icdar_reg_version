@@ -109,7 +109,7 @@ class RenderFont(object):
 
         # text-source : gets english text:
         self.text_source = TextSource(min_nchar=self.min_nchar,
-                                      fn=osp.join(data_dir,'newsgroup/new_text.txt'))
+                                      fn=osp.join(data_dir,'newsgroup/new/'))
 
         # get font-state object:
         self.font_state = FontState(data_dir)
@@ -536,20 +536,19 @@ class TextSource(object):
         self.fdict = {'WORD':self.sample_word,
                       'LINE':self.sample_line,
                       'PARA':self.sample_para}
-        # files= os.listdir(fn)
-        # files=files[0:-1]
+        files= os.listdir(fn)
+        files=files[0:-1]
         #print files
-        # random.shuffle(files)
-        # filecnt=2
+        random.shuffle(files)
+        filecnt=5
         self.txt=[]
-        files = [fn]
         for filename in files:
-            # filecnt-=1
-            # if filecnt==0:
-            #     break
+            filecnt-=1
+            if filecnt==0:
+                 break
             fc=filename.decode('utf-8')
-            # fc=fn+fc
             print fc
+            fc = fn +fc
             with open(fc,'r') as f:
                 for l in f.readlines():
                     line=l.strip()
