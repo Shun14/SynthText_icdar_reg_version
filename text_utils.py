@@ -386,6 +386,10 @@ class RenderFont(object):
             #print colorize(Color.GREEN, text)
 
             # render the text:
+            text_size = font.get_metrics(text)
+            supported = len(filter(lambda t: t is None, text_size)) == 0
+            if not supported:
+                continue
             txt_arr,txt,bb = self.render_curved(font, text)
             bb = self.bb_xywh2coords(bb)
 
