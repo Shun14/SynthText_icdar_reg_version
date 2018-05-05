@@ -554,8 +554,8 @@ class TextSource(object):
                     #print line
                     self.txt.append(line)
         random.shuffle(self.txt)          
-        if len(self.txt) > 50000:
-            self.txt = self.txt[:50000]
+        if len(self.txt) > 100000:
+            self.txt = self.txt[:100000]
         print len(self.txt)
             #self.txt = [l.strip() for l in f.readlines()]
             #self.txt=self.txt.decode('utf-8')
