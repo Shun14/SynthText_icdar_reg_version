@@ -182,8 +182,8 @@ class RenderFont(object):
         isword = len(word_text.split())==1
 
         # do curved iff, the length of the word <= 2
-        if not isword or wl > 2 or np.random.rand() > self.p_curved:
-            return self.render_multiline(font, word_text)
+        #if not isword or wl > 2 or np.random.rand() > self.p_curved:
+        return self.render_multiline(font, word_text)
 
         # create the surface:
         lspace = font.get_sized_height() + 1
