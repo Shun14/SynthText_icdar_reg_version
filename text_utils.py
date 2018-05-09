@@ -142,7 +142,7 @@ class RenderFont(object):
         # initialize the surface to proper size:
         line_bounds = font.get_rect(lines[np.argmax(lengths)])
         
-        fsize = (round(2*line_spacing*len(lines)), round(2 * line_bounds.width))
+        fsize = (round(2.0 *line_spacing*len(lines)), round(2.0 * line_bounds.width))
         # fsize = (round(2.0*line_bounds.width), round(1.25*line_spacing*len(lines)))
 
         surf = pygame.Surface(fsize, pygame.locals.SRCALPHA, 32)
@@ -152,7 +152,7 @@ class RenderFont(object):
         x, y = 0, 0
         for l in lines:
             # carriage-return
-            y = 2*line_spacing # line-feed
+            y = 1.5*line_spacing # line-feed
             for ch in l: # render each character
                 if ch.isspace(): # just shift
                     y += space.height

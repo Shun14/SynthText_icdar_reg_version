@@ -643,6 +643,7 @@ class RendererV3(object):
         # img_copy = cv2.cvtColor(copy.copy(img), cv2.cv.CV_RGB2BGR)
         wrds = text.split()#text
         write_txt_list = []
+
         word_bbox = self.char2wordBB(bb, text)
         # print(text)
         # print(word_bbox.shape)
@@ -717,8 +718,8 @@ class RendererV3(object):
             # are "aligned" appropriately with the character-bb.
             # (exhaustive search over all possible assignments):
             cc_tblr = np.c_[cc[0,:],
-                            cc[-3,:],
-                            cc[-2,:],
+                            cc[1,:],
+                            cc[2,:],
                             cc[3,:]].T
             perm4 = np.array(list(itertools.permutations(np.arange(4))))
             dists = []
@@ -783,7 +784,7 @@ class RendererV3(object):
 
             # print colorize(Color.CYAN, " ** instance # : %d"%i)
 
-            idict = {'img':[], 'charBB':None, 'wordBB':None, 'txt':None}
+            idict = {'img':[], 'charBB':None, 'wordBB':None, 'txt':None, 'imname':None}
 
             m = self.get_num_text_regions(nregions)#np.arange(nregions)#min(nregions, 5*ninstance*self.max_text_regions))
             reg_idx = np.arange(min(2*m,nregions))
@@ -796,6 +797,7 @@ class RendererV3(object):
             ibb = []
             tags_lines_list = []
             total_bbox_text_list = []
+            total_charBB_list = []
             # process regions: 
             num_txt_regions = len(reg_idx)
             NUM_REP = 5 # re-use each region three times:
@@ -829,6 +831,7 @@ class RendererV3(object):
                     txt_lines, write_point_list= self.crop_text_from_img(img, text, bb, imgname, i, idx,data_dir)
                     # tags_lines_list += txt_lines
                     total_bbox_text_list += write_point_list
+                        
                     itext.append(text)
                     ibb.append(bb)
                     # print colorize(Color.GREEN, 'text in synthgen.py/render_text append into itext '+text)
@@ -838,9 +841,10 @@ class RendererV3(object):
                 idict['img'] = img
                 idict['txt'] = itext
                 idict['charBB'] = np.concatenate(ibb, axis=2)
+                idict['imname'] = imgname +'_' +str(i)
                 idict['wordBB'] = self.char2wordBB(idict['charBB'].copy(), ' '.join(itext))
                 # print colorize(Color.GREEN, itext)
-                # save_tags_to_txt(data_dir, imgname, i, tags_lines_list)
+                
                 save_bbox_to_txt(data_dir, imgname, i, total_bbox_text_list)
                 res.append(idict.copy())
                 if viz:

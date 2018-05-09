@@ -14,7 +14,36 @@ import codecs
 from PIL import Image
 import argparse
 
-def general_crop(image, tile, reverse_tile=False, margin_ratio=None):
+class point():
+    def __init__(self,x,y):
+        self.x=x
+        self.y=y 
+
+def cross(p1,p2,p3):
+    x1=p2.x-p1.x
+    y1=p2.y-p1.y
+    x2=p3.x-p1.x
+    y2=p3.y-p1.y
+    return x1*y2-x2*y1     
+
+def IsIntersec(p1,p2,p3,p4):
+
+    if(max(p1.x,p2.x)>=min(p3.x,p4.x)    
+    and max(p3.x,p4.x)>=min(p1.x,p2.x)   
+    and max(p1.y,p2.y)>=min(p3.y,p4.y)   
+    and max(p3.y,p4.y)>=min(p1.y,p2.y)):
+
+        if(cross(p1,p2,p3)*cross(p1,p2,p4)<=0
+           and cross(p3,p4,p1)*cross(p3,p4,p2)<=0):
+            D=1
+        else:
+            D=0
+    else:
+        D=0
+    return D
+
+
+def general_crop(image, tile, reverse_tile=False, margin_ratio=0.2):
     """Crop the image giving a tile.
     Note: 
     Args:
@@ -28,9 +57,19 @@ def general_crop(image, tile, reverse_tile=False, margin_ratio=None):
         ZeroDivisionError: x[1] == x[0] or x[2] == x[3].
     """
     if reverse_tile:
-        tile[1:] = tile[::-1][:3]  
+        tile[1:] = tile[::-1][:3]
+    
     x = [p[0] for p in tile]
     y = [p[1] for p in tile]
+    
+    p1= point(x[0], y[0])
+    p2= point(x[1], y[1])
+    p3= point(x[3], y[3])
+    p4 = point(x[2], y[2])
+    if IsIntersec(p1, p2, p3, p4) == 1:
+        x[1],x[2] = x[2],x[1]
+        y[1],y[2] = y[2],y[1]
+
     # phase1:shift the center of patch to image center
     x_center = int(round(sum(x) / 4))
     y_center = int(round(sum(y) / 4))
@@ -93,7 +132,7 @@ def test_icpr_crop():
             cv2.imwrite(crop_image_path, crop_image)
 
 def get_icpr_crop_data(datadir):
-    root_dir = '/home/zsz/datasets/ICPR/' + datadir
+    root_dir = '/home/zhishengzou/datasets/ICPR/' + datadir
     image_dir = os.path.join(root_dir, 'total_img') 
     txt_dir = os.path.join(root_dir, 'total_txt')
 
@@ -120,11 +159,10 @@ def get_icpr_crop_data(datadir):
     print (tags_train_file, tags_test_file)
     if not osp.exists(crop_train_root):
         os.makedirs(crop_train_root)
-    if not osp.exists(crop_test_root):
-        os.makedirs(crop_test_root)
+
 
     tags_train_fo = open(tags_train_file, 'w')
-    tags_test_fo = open(tags_test_file, 'w')
+    # tags_test_fo = open(tags_test_file, 'w')
     error_msg = open(root_dir+ '/error.log', 'w')
     error_num = 0
     total_crop_num = 0
@@ -134,7 +172,7 @@ def get_icpr_crop_data(datadir):
         txt_name = image_id + '.txt'
         txt_path = os.path.join(txt_dir, txt_name)
 
-        if total_img_list.index(image_name) < train_num:
+        if total_img_list.index(image_name) < total_num:
             crop_save_dir = os.path.join(crop_train_root, image_id)
         else :
             crop_save_dir = os.path.join(crop_test_root, image_id)
@@ -172,17 +210,17 @@ def get_icpr_crop_data(datadir):
                     cv2.imwrite(crop_image_path, crop_image)
                     print(crop_image_path)
                     total_crop_num += 0
-                    if total_img_list.index(image_name) < train_num:
+                    if total_img_list.index(image_name) < total_num:
                         tags_train_fo.write('{} {}\n'.format(crop_image_path, label))
-                    else:
-                        tags_test_fo.write('{} {}\n'.format(crop_image_path, label))
+                    
+                        # tags_test_fo.write('{} {}\n'.format(crop_image_path, label))
         except IOError:
             error_msg.write('txt:{}, image:{}\n'.format(txt_path, image_path))
             error_num += 1
         
                 
     tags_train_fo.close()
-    tags_test_fo.close()
+    # tags_test_fo.close()
     print('succed:', total_num - error_num)
     print('crop_total_num:',total_crop_num)
     print('finished!!')
@@ -191,7 +229,7 @@ if __name__ == "__main__":
     # test_rctw_crop()
     import argparse
     parser = argparse.ArgumentParser(description='Crop for bbox')
-    parser.add_argument('--name', default='icpr_data_x', type=str)
+    parser.add_argument('--name', default='icpr_data_vertical_5', type=str)
     args = parser.parse_args()
     get_icpr_crop_data(args.name)
 
