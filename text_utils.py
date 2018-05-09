@@ -127,6 +127,13 @@ class RenderFont(object):
         """
         # get the number of lines
         lines = text.split('\n')
+        # remove those font not supported
+        for l in lines:
+            text_size = font.get_metrics(l)
+            supported = len(filter(lambda t: t is None, text_size)) == 0
+            if not supported:
+                lines.remove(l)
+
         lengths = [len(l) for l in lines]
 
         # font parameters:
@@ -163,7 +170,7 @@ class RenderFont(object):
         rect_union = r0.unionall(bbs)
 
         # get the words:
-        words = ' '.join(text.split())
+        words = ' '.join(lines)
         #words=words.decode('utf-8')
         # crop the surface to fit the text:
         bbs = np.array(bbs)
@@ -391,13 +398,9 @@ class RenderFont(object):
             #print colorize(Color.GREEN, text)
 
             # render the text:
-            text_size = font.get_metrics(text)
-            supported = len(filter(lambda t: t is None, text_size)) == 0
-            if not supported:
-                continue
+
             txt_arr,txt,bb = self.render_curved(font, text)
             bb = self.bb_xywh2coords(bb)
-
             # make sure that the text-array is not bigger than mask array:
             if np.any(np.r_[txt_arr.shape[:2]] > np.r_[mask.shape[:2]]):
                 #warn("text-array is bigger than mask")
@@ -406,8 +409,9 @@ class RenderFont(object):
             # print colorize(Color.GREEN, 'pass in mask array size')
             # position the text within the mask:
             text_mask,loc,bb, order = self.place_text([txt_arr], mask, [bb])
+
             if len(loc) > 0:#successful in placing the text collision-free:
-                return text_mask,loc[0],bb[0],text, order
+                return text_mask,loc[0],bb[0],txt, order
         return #None
 
 

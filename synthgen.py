@@ -492,7 +492,7 @@ class RendererV3(object):
 
     def warpHomography(self,src_mat,H,dst_size):
         dst_mat = cv2.warpPerspective(src_mat, H, dst_size,
-                                      flags=cv2.WARP_INVERSE_MAP|cv2.INTER_LINEAR)
+                                      flags=cv2.WARP_INVERSE_MAP)
         return dst_mat
 
     def homographyBB(self, bbs, H, offset=None):
@@ -592,7 +592,6 @@ class RendererV3(object):
         else:
             text_mask,loc,bb,text,order = render_res
             #text=text.decode('utf-8')
-            
         
         # update the collision mask with text:
         collision_mask += (255 * (text_mask>0)).astype('uint8')
@@ -600,6 +599,7 @@ class RendererV3(object):
         # warp the object mask back onto the image:
         text_mask_orig = text_mask.copy()
         bb_orig = bb.copy()
+
         text_mask = self.warpHomography(text_mask,H,rgb.shape[:2][::-1])
         bb = self.homographyBB(bb,Hinv)
 
