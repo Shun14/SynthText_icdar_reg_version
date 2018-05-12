@@ -93,7 +93,7 @@ def test_icpr_crop():
             cv2.imwrite(crop_image_path, crop_image)
 
 def get_icpr_crop_data(datadir):
-    root_dir = '/home/zsz/datasets/ICPR/' + datadir
+    root_dir = '/home/zhishengzou/datasets/ICPR/' + datadir
     image_dir = os.path.join(root_dir, 'total_img') 
     txt_dir = os.path.join(root_dir, 'total_txt')
 
@@ -154,11 +154,11 @@ def get_icpr_crop_data(datadir):
             with open(txt_path) as fo:
                 image_crop_id = 0
                 for line in fo:
-                    tspace = line.strip().split(' ')
+                    tspace = line.strip().split(',')
                     
-                    ts = tspace[0].split(',')
+                    ts = tspace
                     points = [float(x) for x in ts[:8]]
-                    label = tspace[1]
+                    label = tspace[-1]
 
                     if label == '###' or label == '':
                         continue

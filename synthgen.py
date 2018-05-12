@@ -614,7 +614,16 @@ class RendererV3(object):
         #     print(list_text[i])
         #     print(bb[:,:,i])
         # print(text)
+        bb_list =[]
+        if bb.shape[2] != len(text):
+            text=text.strip()
+            text = ''.join(text.split())
 
+        for i in range(bb.shape[2]):
+            bb_list.append(str(bb[0,0,i]) +',' +
+            str(bb[1,0,i]) + ',' +str(bb[0,1,i]) +',' +str(bb[1,1,i]) +',' + str(bb[0,2,i]) +',' +str(bb[1,2,i]) + ',' +str(bb[0,3,i]) +',' +str(bb[1,3,i]) + ','+text[i] +'\n')
+            
+        
         # get the minimum height of the character-BB:
         min_h = self.get_min_h(bb,text)
 
@@ -623,7 +632,7 @@ class RendererV3(object):
 
         im_final = self.colorizer.color(rgb,[text_mask],np.array([min_h]))
         # print colorize(Color.GREEN, 'text in synthgen.py/place_text to return '+text)
-        return im_final, text, bb, collision_mask
+        return im_final, text, bb, collision_mask, bb_list
 
 
     def get_num_text_regions(self, nregions):
@@ -796,6 +805,7 @@ class RendererV3(object):
             ibb = []
             tags_lines_list = []
             total_bbox_text_list = []
+            bbox_list = []
             # process regions: 
             num_txt_regions = len(reg_idx)
             NUM_REP = 5 # re-use each region three times:
@@ -822,13 +832,15 @@ class RendererV3(object):
 
                 if txt_render_res is not None:
                     placed = True
-                    img,text,bb,collision_mask = txt_render_res
+                    img,text,bb,collision_mask, bb_list = txt_render_res
+
                     # update the region collision mask:
                     place_masks[ireg] = collision_mask
                     # store the result:
                     txt_lines, write_point_list= self.crop_text_from_img(img, text, bb, imgname, i, idx,data_dir)
                     # tags_lines_list += txt_lines
                     total_bbox_text_list += write_point_list
+                    bbox_list += bb_list
                     itext.append(text)
                     ibb.append(bb)
                     # print colorize(Color.GREEN, 'text in synthgen.py/render_text append into itext '+text)
@@ -841,7 +853,7 @@ class RendererV3(object):
                 idict['wordBB'] = self.char2wordBB(idict['charBB'].copy(), ' '.join(itext))
                 # print colorize(Color.GREEN, itext)
                 # save_tags_to_txt(data_dir, imgname, i, tags_lines_list)
-                save_bbox_to_txt(data_dir, imgname, i, total_bbox_text_list)
+                save_bbox_to_txt(data_dir, imgname, i, bbox_list)
                 res.append(idict.copy())
                 if viz:
                     viz_textbb(1,img, [idict['wordBB']], alpha=1.0)
