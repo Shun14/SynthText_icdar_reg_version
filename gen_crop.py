@@ -132,7 +132,7 @@ def test_icpr_crop():
             cv2.imwrite(crop_image_path, crop_image)
 
 def get_icpr_crop_data(datadir):
-    root_dir = '/home/zhishengzou/datasets/ICPR/' + datadir
+    root_dir = '/home/zsz/datasets/ICPR/' + datadir
     image_dir = os.path.join(root_dir, 'total_img') 
     txt_dir = os.path.join(root_dir, 'total_txt')
 
@@ -229,7 +229,7 @@ if __name__ == "__main__":
     # test_rctw_crop()
     import argparse
     parser = argparse.ArgumentParser(description='Crop for bbox')
-    parser.add_argument('--name', default='icpr_data_vertical_5', type=str)
+    parser.add_argument('--name', default='icpr_data_vertical_test', type=str)
     args = parser.parse_args()
     get_icpr_crop_data(args.name)
 

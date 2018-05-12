@@ -87,8 +87,8 @@ def main(datadir, name):
 if __name__=='__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Visualize the results')
-    parser.add_argument('--datadir', default='icpr_data_vertical_1/', type=str)
-    parser.add_argument('--name', default='img_5_2', type=str)
+    parser.add_argument('--datadir', default='icpr_data_vertical_test/', type=str)
+    parser.add_argument('--name', default='img_1_0', type=str)
     args = parser.parse_args()
     main(args.datadir,args.name)
 
