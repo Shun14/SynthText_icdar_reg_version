@@ -243,9 +243,9 @@ def get_text_placement_mask(xyz,mask,plane,pad=2,viz=False):
 
     # unrotate in 2D plane:
     rect = cv2.minAreaRect(pts_fp[0].copy().astype('float32'))
-    rect = list(rect)
-    rect[2] = -90
-    rect = tuple(rect)
+    # rect = list(rect)
+    # rect[2] = 0
+    # rect = tuple(rect)
     box = np.array(cv2.cv.BoxPoints(rect))
     R2d = su.unrotate2d(box.copy())
     box = np.vstack([box,box[0,:]]) #close the box for visualization
@@ -604,12 +604,12 @@ class RendererV3(object):
         bb_orig = bb.copy()
 
         text_mask = self.warpHomography(text_mask,H,rgb.shape[:2][::-1])
-        plt.subplot(121)
-        plt.imshow(text_mask_orig)
+        # plt.subplot(121)
+        # plt.imshow(text_mask_orig)
         # plt.subplot(122)
         # plt.imshow(text_mask)
         # plt.show()
-
+        #
         bb = self.homographyBB(bb,Hinv)
 
         if not self.bb_filter(bb_orig,bb,text):

@@ -142,14 +142,15 @@ class RenderFont(object):
         # initialize the surface to proper size:
         line_bounds = font.get_rect(lines[np.argmax(lengths)])
         
-        fsize = (round(2.0 *line_spacing*len(lines)), round(2.0 * line_bounds.width))
+        fsize = (round(1.5 *line_spacing*len(lines)), round(3.0 * line_bounds.width))
         # fsize = (round(2.0*line_bounds.width), round(1.25*line_spacing*len(lines)))
 
         surf = pygame.Surface(fsize, pygame.locals.SRCALPHA, 32)
         width, height = surf.get_size()
+
         bbs = []
         space = font.get_rect('O')
-        x, y = 0, 0
+        x, y = space.width/5, 0
         for l in lines:
             # carriage-return
             y = 1.5*line_spacing # line-feed
@@ -158,8 +159,20 @@ class RenderFont(object):
                     y += space.height
                 else:
                     # render the character
+                    ch_size = font.get_metrics(ch)[0]
                     ch_bounds = font.render_to(surf, (x,y), ch)
-                    ch_bounds.x = x - ch_bounds.x
+                    if ch_size[0] <= 3:
+                        if ch_size[0] == 0:
+                            ch_bounds.x = x - ch_bounds.x + 1
+                            ch_bounds.width = ch_size[1] - ch_size[0]
+                        else:
+                            ch_bounds.x = x - ch_bounds.x + ch_size[0] *2
+                            ch_bounds.width = ch_size[1] - ch_size[0]
+                    else:
+
+                        ch_bounds.x = x - ch_bounds.x + ch_size[0]*1.8 + 1
+                        ch_bounds.width = ch_size[1] - ch_size[0] * 0.5
+
                     ch_bounds.y = y - ch_bounds.y
                     y += ch_bounds.height
                     bbs.append(np.array(ch_bounds))
@@ -428,9 +441,9 @@ class FontState(object):
     Defines the random state of the font rendering  
     """
     size = [50, 10]  # normal dist mean, std
-    underline = 0.05
+    underline = 0.0
     strong = 0.5
-    oblique = 0.2
+    oblique = 0.0#not rec
     wide = 0.5
     strength = [0.05, 0.1]  # uniform dist in this interval
     underline_adjustment = [1.0, 2.0]  # normal dist mean, std
@@ -438,7 +451,7 @@ class FontState(object):
     border = 0.25
     random_caps = -1 ## don't recapitalize : retain the capitalization of the lexicon
     capsmode = [str.lower, str.upper, str.capitalize]  # lower case, upper case, proper noun
-    curved = 0.2
+    curved = 0.0
     random_kerning = 0.2
     random_kerning_amount = 0.1
 

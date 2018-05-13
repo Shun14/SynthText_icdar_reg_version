@@ -184,10 +184,10 @@ def main1(args):
           #TODO multi thread
           # add_res_to_db(imname, res, out_db)
           save_res_to_file(imname, res, out_dir)
-          for x in xrange(len(res)):
-            del res[x]['img']
-
-          res_list.append(res)
+          # for x in xrange(len(res)):
+          #   del res[x]['img']
+          #
+          # res_list.append(res)
           # add_res_to_cp(imname, res, out_dir)
 
         print '*********time consume in each pic',(t2-t1)/INSTANCE_PER_IMAGE
@@ -203,10 +203,10 @@ def main1(args):
   idict['res'] = res_list
   cp_path = os.path.join(out_dir,'cp')
   if not os.path.exists(cp_path):
-    os.makedirs(cp_path) 
-
-  with open('total.pickle', 'wb') as f:
-    pickle.dump(idict, f, protocol=pickle.HIGHEST_PROTOCOL)
+    os.makedirs(cp_path)
+  #
+  # with open('total.pickle', 'wb') as f:
+  #   pickle.dump(idict, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 if __name__=='__main__':
@@ -219,15 +219,15 @@ if __name__=='__main__':
   p = multiprocessing.Pool()
   # parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
   
-  for i in range(0, 1):
-#__range = '%d,%d' %(100 * i + 1, 100*(i+1))
-    __range = '%d,%d' %(2 * i + 1, 2*(i+1))
+  for i in range(0, 10):
+    __range = '%d,%d' %(100 * i + 1, 100*(i+1))
+    # __range = '%d,%d' %(2 * i + 1, 2*(i+1))
     # __range = '1,3'
     parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
     # parser.add_argument('--multi', default='yes', type=str)
     parser.add_argument('--viz',action='store_true',dest='viz',default=False,help='flag for turning on visualizations') 
     parser.add_argument('--range',default=__range,type=str)
-    parser.add_argument('--output_dir',default = 'icpr_data_vertical_test',type=str)
+    parser.add_argument('--output_dir',default = 'icpr_data_vertical_new_1',type=str)
     args = parser.parse_args()
     p.apply_async(main1, args=(args,))
   # main1(args)

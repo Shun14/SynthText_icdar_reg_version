@@ -43,7 +43,7 @@ def IsIntersec(p1,p2,p3,p4):
     return D
 
 
-def general_crop(image, tile, reverse_tile=False, margin_ratio=0.2):
+def general_crop(image, tile, reverse_tile=False, margin_ratio=None):
     """Crop the image giving a tile.
     Note: 
     Args:
