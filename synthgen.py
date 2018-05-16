@@ -243,6 +243,9 @@ def get_text_placement_mask(xyz,mask,plane,pad=2,viz=False):
 
     # unrotate in 2D plane:
     rect = cv2.minAreaRect(pts_fp[0].copy().astype('float32'))
+    # rect = list(rect)
+    # rect[2] = 0
+    # rect = tuple(rect)
     box = np.array(cv2.cv.BoxPoints(rect))
     R2d = su.unrotate2d(box.copy())
     box = np.vstack([box,box[0,:]]) #close the box for visualization
@@ -492,7 +495,7 @@ class RendererV3(object):
 
     def warpHomography(self,src_mat,H,dst_size):
         dst_mat = cv2.warpPerspective(src_mat, H, dst_size,
-                                      flags=cv2.WARP_INVERSE_MAP|cv2.INTER_LINEAR)
+                                      flags=cv2.WARP_INVERSE_MAP)
         return dst_mat
 
     def homographyBB(self, bbs, H, offset=None):
@@ -582,7 +585,7 @@ class RendererV3(object):
         return cv2.GaussianBlur(text_mask,(ksz,ksz),bsz)
 
     
-    def place_text(self,rgb,collision_mask,H,Hinv):
+    def place_text(self,rgb,collision_mask,H,Hinv, img_origin):
         font = self.text_renderer.font_state.sample()
         font = self.text_renderer.font_state.init_font(font)
 
@@ -592,7 +595,6 @@ class RendererV3(object):
         else:
             text_mask,loc,bb,text,order = render_res
             #text=text.decode('utf-8')
-            
         
         # update the collision mask with text:
         collision_mask += (255 * (text_mask>0)).astype('uint8')
@@ -600,8 +602,15 @@ class RendererV3(object):
         # warp the object mask back onto the image:
         text_mask_orig = text_mask.copy()
         bb_orig = bb.copy()
-#text_mask = self.warpHomography(text_mask,H,rgb.shape[:2][::-1])
-#       bb = self.homographyBB(bb,Hinv)
+
+        text_mask = self.warpHomography(text_mask,H,rgb.shape[:2][::-1])
+        # plt.subplot(121)
+        # plt.imshow(text_mask_orig)
+        # plt.subplot(122)
+        # plt.imshow(text_mask)
+        # plt.show()
+        #
+        bb = self.homographyBB(bb,Hinv)
 
         if not self.bb_filter(bb_orig,bb,text):
             # colorize(Color.RED, 'bad charBB statistics')
@@ -621,7 +630,7 @@ class RendererV3(object):
         #feathering:
         text_mask = self.feather(text_mask, min_h)
 
-        im_final = self.colorizer.color(rgb,[text_mask],np.array([min_h]))
+        im_final = self.colorizer.color(rgb,[text_mask],np.array([min_h]), img_origin)
         # print colorize(Color.GREEN, 'text in synthgen.py/place_text to return '+text)
         return im_final, text, bb, collision_mask
 
@@ -640,9 +649,10 @@ class RendererV3(object):
         img_path = os.path.join( os.getcwd(), data_dir, 'img' ,img_name)
         if not os.path.exists(img_path):
             os.makedirs(img_path)
-        # img_copy = cv2.cvtColor(copy.copy(img), cv2.cv.CV_RGB2BGR)
+        img_copy = cv2.cvtColor(copy.copy(img), cv2.cv.CV_RGB2BGR)
         wrds = text.split()#text
         write_txt_list = []
+
         word_bbox = self.char2wordBB(bb, text)
         # print(text)
         # print(word_bbox.shape)
@@ -662,13 +672,13 @@ class RendererV3(object):
             p_bbox_text = ','.join(str(p) for p in write_point) + ' ' +wrds[i] +'\n'
 
             #crop image
-            # tile = [(x, y) for (x, y) in zip(xs, ys)]
-            # crop_img = general_crop(img_copy, tile)
-            # __range = '/img_%s_%s_%s' % (str(instance), str(idx), str(i))
-            # crop_img_path = img_path + __range + '.jpg'
-            # cv2.imwrite(crop_img_path,crop_img)
+            tile = [(x, y) for (x, y) in zip(xs, ys)]
+            crop_img = general_crop(img_copy, tile)
+            __range = '/img_%s_%s_%s' % (str(instance), str(idx), str(i))
+            crop_img_path = img_path + __range + '.jpg'
+            cv2.imwrite(crop_img_path,crop_img)
 
-            # write_lines.append(crop_img_path +' ' +wrds[i] + '\n')
+            write_lines.append(crop_img_path +' ' +wrds[i] + '\n')
             write_point_list.append(p_bbox_text)
             # file.write(crop_img_path +' ' +wrds[i] +'\n')
             
@@ -717,8 +727,8 @@ class RendererV3(object):
             # are "aligned" appropriately with the character-bb.
             # (exhaustive search over all possible assignments):
             cc_tblr = np.c_[cc[0,:],
-                            cc[-3,:],
-                            cc[-2,:],
+                            cc[1,:],
+                            cc[2,:],
                             cc[3,:]].T
             perm4 = np.array(list(itertools.permutations(np.arange(4))))
             dists = []
@@ -730,7 +740,7 @@ class RendererV3(object):
         return wordBB
 
 
-    def render_text(self,rgb,depth,seg,area,label,imgname, data_dir='output_data', ninstance=1, viz=False):
+    def render_text(self,rgb,depth,seg,area,label,imgname, img_origin, data_dir='output_data', ninstance=1, viz=False):
         """
         rgb   : HxWx3 image rgb values (uint8)
         depth : HxW depth values (float)
@@ -783,7 +793,7 @@ class RendererV3(object):
 
             # print colorize(Color.CYAN, " ** instance # : %d"%i)
 
-            idict = {'img':[], 'charBB':None, 'wordBB':None, 'txt':None}
+            idict = {'img':[], 'charBB':None, 'wordBB':None, 'txt':None, 'imname':None}
 
             m = self.get_num_text_regions(nregions)#np.arange(nregions)#min(nregions, 5*ninstance*self.max_text_regions))
             reg_idx = np.arange(min(2*m,nregions))
@@ -796,6 +806,7 @@ class RendererV3(object):
             ibb = []
             tags_lines_list = []
             total_bbox_text_list = []
+            total_charBB_list = []
             # process regions: 
             num_txt_regions = len(reg_idx)
             NUM_REP = 5 # re-use each region three times:
@@ -806,12 +817,12 @@ class RendererV3(object):
                     if self.max_time is None:
                         txt_render_res = self.place_text(img,place_masks[ireg],
                                                          regions['homography'][ireg],
-                                                         regions['homography_inv'][ireg])
+                                                         regions['homography_inv'][ireg], img_origin)
                     else:
-                        with time_limit(self.max_time):
-                            txt_render_res = self.place_text(img,place_masks[ireg],
-                                                             regions['homography'][ireg],
-                                                             regions['homography_inv'][ireg])
+                        # with time_limit(self.max_time):
+                        txt_render_res = self.place_text(img,place_masks[ireg],
+                                                         regions['homography'][ireg],
+                                                         regions['homography_inv'][ireg], img_origin)
                 except TimeoutException, msg:
                     print msg
                     continue
@@ -827,8 +838,8 @@ class RendererV3(object):
                     place_masks[ireg] = collision_mask
                     # store the result:
                     txt_lines, write_point_list= self.crop_text_from_img(img, text, bb, imgname, i, idx,data_dir)
-                    tags_lines_list += txt_lines
-#total_bbox_text_list += write_point_list
+                    # tags_lines_list += txt_lines
+                    total_bbox_text_list += write_point_list
                     itext.append(text)
                     ibb.append(bb)
                     # print colorize(Color.GREEN, 'text in synthgen.py/render_text append into itext '+text)
@@ -838,10 +849,11 @@ class RendererV3(object):
                 idict['img'] = img
                 idict['txt'] = itext
                 idict['charBB'] = np.concatenate(ibb, axis=2)
+                idict['imname'] = imgname +'_' +str(i)
                 idict['wordBB'] = self.char2wordBB(idict['charBB'].copy(), ' '.join(itext))
                 # print colorize(Color.GREEN, itext)
-                save_tags_to_txt(data_dir, imgname, i, tags_lines_list)
-#save_bbox_to_txt(data_dir, imgname, i, total_bbox_text_list)
+                # save_tags_to_txt(data_dir, imgname, i, tags_lines_list)
+                save_bbox_to_txt(data_dir, imgname, i, total_bbox_text_list)
                 res.append(idict.copy())
                 if viz:
                     viz_textbb(1,img, [idict['wordBB']], alpha=1.0)

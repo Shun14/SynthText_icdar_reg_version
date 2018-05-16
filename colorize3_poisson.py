@@ -9,6 +9,7 @@ import os.path as osp
 import cPickle as cp
 #import Image
 from PIL import Image
+import codecs
 from poisson_reconstruct import blit_images
 
 
@@ -46,6 +47,26 @@ class FontColor(object):
     def __init__(self, col_file):
         with open(col_file,'r') as f:
             self.colorsRGB = cp.load(f)
+        try:
+            with codecs.open('img_shelter.txt', 'r') as fin:
+                lines = fin.readlines()
+                self.bg_fg = lines
+                # for l in lines:
+                #     img_rgb = l.strip().split()[0][1:]
+                #     r = int(img_rgb[0:2], 16)
+                #     g = int(img_rgb[2:4], 16)
+                #     b = int(img_rgb[4:], 16)
+                #     font_rgb = l.strip().split()[1][1:]
+                #     font_r = int(font_rgb[0,2], 16)
+                #     font_g = int(font_rgb[2:4], 16)
+                #     font_b = int(font_rgb[4:], 16)
+                #     key = '{}{}{}'.format(r,g,b)
+                #     self.bg_fg[key] = [font_r, font_g, font_b]
+                print(self.bg_fg)
+        except:
+            print('error')
+        
+                
         self.ncol = self.colorsRGB.shape[0]
 
         # convert color-means from RGB to LAB for better nearest neighbour
@@ -141,7 +162,7 @@ class Colorize(object):
         # # get a list of background-images:
         # imlist = [osp.join(im_path,f) for f in os.listdir(im_path)]
         # self.bg_list = [p for p in imlist if osp.isfile(p)]
-
+        print('colorize')
         self.font_color = FontColor(col_file=osp.join(model_dir,'models/colors_new.cp'))
 
         # probabilities of different text-effects:
@@ -287,7 +308,7 @@ class Colorize(object):
         col_text[2] = get_sample(col_text[2]) # value
         return np.squeeze(cv.cvtColor(col_text[None,None,:],cv.cv.CV_HSV2RGB))
 
-    def color_text(self, text_arr, h, bg_arr):
+    def color_text(self, text_arr, h, bg_arr, img_origin):
         """
         Decide on a color for the text:
             - could be some other random image.
@@ -299,11 +320,35 @@ class Colorize(object):
             H : minimum height of a character
         """
         bg_col,fg_col,i = 0,0,0
-        fg_col,bg_col = self.font_color.sample_from_data(bg_arr)
+        # fg_col,bg_col = self.font_color.sample_from_data(bg_arr)
+        # print(fg_col)
+        # print('bg_col', np.array(bg_col).shape)
+        # print(bg_col)
+        pix = img_origin.load()
+        ori_r ,ori_g, ori_b = pix[0,0]
+
+        for l in self.font_color.bg_fg:
+            img_rgb = l.strip().split()[0][1:]
+            r = int(img_rgb[0:2], 16)
+            g = int(img_rgb[2:4], 16)
+            b = int(img_rgb[4:], 16)
+            if [r,g,b] == [int(ori_r), int(ori_g),int(ori_b)]:
+                font_rgb = l.strip().split()[1][1:]
+                font_r = int(font_rgb[0:2], 16)
+                font_g = int(font_rgb[2:4], 16)
+                font_b = int(font_rgb[4:], 16)
+                break
+            else :
+                font_r = 0
+                font_g = 0
+                font_b = 0
+        
+        bg_col = np.array([int(ori_r), int(ori_g), int(ori_b)])
+        fg_col = np.array([int(font_r), int(font_g), int(font_b)])
         return Layer(alpha=text_arr, color=fg_col), fg_col, bg_col
 
 
-    def process(self, text_arr, bg_arr, min_h):
+    def process(self, text_arr, bg_arr, min_h, img_origin):
         """
         text_arr : one alpha mask : nxm, uint8
         bg_arr   : background image: nxmx3, uint8
@@ -312,7 +357,7 @@ class Colorize(object):
         return text_arr blit onto bg_arr.
         """
         # decide on a color for the text:
-        l_text, fg_col, bg_col = self.color_text(text_arr, min_h, bg_arr)
+        l_text, fg_col, bg_col = self.color_text(text_arr, min_h, bg_arr, img_origin)
         bg_col = np.mean(np.mean(bg_arr,axis=0),axis=0)
         l_bg = Layer(alpha=255*np.ones_like(text_arr,'uint8'),color=bg_col)
 
@@ -405,7 +450,7 @@ class Colorize(object):
         print "color diff percentile :", diff
         return diff, (bgo,txto)
 
-    def color(self, bg_arr, text_arr, hs, place_order=None, pad=20):
+    def color(self, bg_arr, text_arr, hs, img_origin, place_order=None, pad=20):
         """
         Return colorized text image.
 
@@ -449,7 +494,7 @@ class Colorize(object):
             w,h = text_patch.shape
             bg = bg_arr[l[0]:l[0]+w,l[1]:l[1]+h,:]
 
-            rdr0 = self.process(text_patch, bg, hs[i])
+            rdr0 = self.process(text_patch, bg, hs[i], img_origin)
             rendered.append(rdr0)
 
             bg_arr[l[0]:l[0]+w,l[1]:l[1]+h,:] = rdr0#rendered[-1]

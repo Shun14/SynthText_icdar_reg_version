@@ -109,7 +109,7 @@ class RenderFont(object):
 
         # text-source : gets english text:
         self.text_source = TextSource(min_nchar=self.min_nchar,
-                                      fn=osp.join(data_dir,'newsgroup/new/'))
+                                      fn=osp.join(data_dir,'newsgroup/new/train_9000/'))
 
         # get font-state object:
         self.font_state = FontState(data_dir)
@@ -127,46 +127,71 @@ class RenderFont(object):
         """
         # get the number of lines
         lines = text.split('\n')
+        # remove those font not supported
+        for l in lines:
+            text_size = font.get_metrics(l)
+            supported = len(filter(lambda t: t is None, text_size)) == 0
+            if not supported:
+                lines.remove(l)
+
         lengths = [len(l) for l in lines]
 
         # font parameters:
-        line_spacing = font.get_sized_height() + 1
-        
+        line_spacing = font.get_sized_height() + 2
+
         # initialize the surface to proper size:
         line_bounds = font.get_rect(lines[np.argmax(lengths)])
-        fsize = (round(2.0*line_bounds.width), round(1.25*line_spacing*len(lines)))
+        
+        fsize = (round(1.5 *line_spacing*len(lines)), round(3.0 * line_bounds.width))
+        # fsize = (round(2.0*line_bounds.width), round(1.25*line_spacing*len(lines)))
+
         surf = pygame.Surface(fsize, pygame.locals.SRCALPHA, 32)
+        width, height = surf.get_size()
 
         bbs = []
         space = font.get_rect('O')
-        x, y = 0, 0
+        x, y = space.width/5, 0
         for l in lines:
-            x = 0 # carriage-return
-            y += line_spacing # line-feed
-
+            # carriage-return
+            y = 1.5*line_spacing # line-feed
             for ch in l: # render each character
                 if ch.isspace(): # just shift
-                    x += space.width
+                    y += space.height
                 else:
                     # render the character
+                    ch_size = font.get_metrics(ch)[0]
                     ch_bounds = font.render_to(surf, (x,y), ch)
-                    ch_bounds.x = x + ch_bounds.x
+                    if ch_size[0] <= 3:
+                        if ch_size[0] == 0:
+                            ch_bounds.x = x - ch_bounds.x + 1
+                            ch_bounds.width = ch_size[1] - ch_size[0]
+                        else:
+                            ch_bounds.x = x - ch_bounds.x + ch_size[0] *2
+                            ch_bounds.width = ch_size[1] - ch_size[0]
+                    else:
+
+                        ch_bounds.x = x - ch_bounds.x + ch_size[0]*1.8 + 1
+                        ch_bounds.width = ch_size[1] - ch_size[0] * 0.5
+
                     ch_bounds.y = y - ch_bounds.y
-                    x += ch_bounds.width
+                    y += ch_bounds.height
                     bbs.append(np.array(ch_bounds))
+            x += line_spacing
 
         # get the union of characters for cropping:
         r0 = pygame.Rect(bbs[0])
         rect_union = r0.unionall(bbs)
 
         # get the words:
-        words = ' '.join(text.split())
+        words = ' '.join(lines)
         #words=words.decode('utf-8')
         # crop the surface to fit the text:
         bbs = np.array(bbs)
+        
         surf_arr, bbs = crop_safe(pygame.surfarray.pixels_alpha(surf), rect_union, bbs, pad=5)
         surf_arr = surf_arr.swapaxes(0,1)
-        #self.visualize_bb(surf_arr,bbs)
+        
+        # self.visualize_bb(surf_arr,bbs)
         return surf_arr, words, bbs
 
     def render_curved(self, font, word_text):
@@ -176,9 +201,9 @@ class RenderFont(object):
         wl = len(word_text)
         isword = len(word_text.split())==1
 
-        # do curved iff, the length of the word <= 10
-        if not isword or wl > 10 or np.random.rand() > self.p_curved:
-            return self.render_multiline(font, word_text)
+        # do curved iff, the length of the word <= 2
+        #if not isword or wl > 2 or np.random.rand() > self.p_curved:
+        return self.render_multiline(font, word_text)
 
         # create the surface:
         lspace = font.get_sized_height() + 1
@@ -355,7 +380,8 @@ class RenderFont(object):
             #print "font-height : %.2f (min: %.2f, max: %.2f)"%(f_h_px, self.min_font_h,max_font_h)
             # convert from pixel-height to font-point-size:
             f_h = self.font_state.get_font_size(font, f_h_px)
-
+            if f_h > 200:
+                f_h = 200
             # update for the loop
             max_font_h = f_h_px 
             i += 1
@@ -386,13 +412,9 @@ class RenderFont(object):
             #print colorize(Color.GREEN, text)
 
             # render the text:
-            text_size = font.get_metrics(text)
-            supported = len(filter(lambda t: t is None, text_size)) == 0
-            if not supported:
-                continue
+
             txt_arr,txt,bb = self.render_curved(font, text)
             bb = self.bb_xywh2coords(bb)
-
             # make sure that the text-array is not bigger than mask array:
             if np.any(np.r_[txt_arr.shape[:2]] > np.r_[mask.shape[:2]]):
                 #warn("text-array is bigger than mask")
@@ -401,15 +423,16 @@ class RenderFont(object):
             # print colorize(Color.GREEN, 'pass in mask array size')
             # position the text within the mask:
             text_mask,loc,bb, order = self.place_text([txt_arr], mask, [bb])
+
             if len(loc) > 0:#successful in placing the text collision-free:
-                return text_mask,loc[0],bb[0],text, order
+                return text_mask,loc[0],bb[0],txt, order
         return #None
 
 
     def visualize_bb(self, text_arr, bbs):
         ta = text_arr.copy()
         for r in bbs:
-            cv.rectangle(ta, (r[0],r[1]), (r[0]+r[2],r[1]+r[3]), color=128, thickness=1)
+            cv2.rectangle(ta, (r[0],r[1]), (r[0]+r[2],r[1]+r[3]), color=128, thickness=1)
         plt.imshow(ta,cmap='gray')
         plt.show()
 
@@ -421,7 +444,7 @@ class FontState(object):
     size = [50, 10]  # normal dist mean, std
     underline = 0.0
     strong = 0.5
-    oblique = 0.2
+    oblique = 0.0#not rec
     wide = 0.5
     strength = [0.05, 0.1]  # uniform dist in this interval
     underline_adjustment = [1.0, 2.0]  # normal dist mean, std
@@ -429,7 +452,7 @@ class FontState(object):
     border = 0.25
     random_caps = -1 ## don't recapitalize : retain the capitalization of the lexicon
     capsmode = [str.lower, str.upper, str.capitalize]  # lower case, upper case, proper noun
-    curved = 0.1
+    curved = 0.0
     random_kerning = 0.2
     random_kerning_amount = 0.1
 
@@ -542,7 +565,7 @@ class TextSource(object):
         # files=files[0:-1]
         #print files
         random.shuffle(files)
-        filecnt=2 
+        filecnt=4 
         self.txt=[]
         for filename in files:
             filecnt-=1
@@ -558,8 +581,8 @@ class TextSource(object):
                     #print line
                     self.txt.append(line)
         random.shuffle(self.txt)          
-        if len(self.txt) > 100000:
-            self.txt = self.txt[:100000]
+        if len(self.txt) > 300000:
+            self.txt = self.txt[:300000]
         print len(self.txt)
             #self.txt = [l.strip() for l in f.readlines()]
             #self.txt=self.txt.decode('utf-8')
