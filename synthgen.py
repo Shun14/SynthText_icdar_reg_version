@@ -600,8 +600,8 @@ class RendererV3(object):
         # warp the object mask back onto the image:
         text_mask_orig = text_mask.copy()
         bb_orig = bb.copy()
-        text_mask = self.warpHomography(text_mask,H,rgb.shape[:2][::-1])
-        bb = self.homographyBB(bb,Hinv)
+#text_mask = self.warpHomography(text_mask,H,rgb.shape[:2][::-1])
+#       bb = self.homographyBB(bb,Hinv)
 
         if not self.bb_filter(bb_orig,bb,text):
             # colorize(Color.RED, 'bad charBB statistics')
@@ -827,8 +827,8 @@ class RendererV3(object):
                     place_masks[ireg] = collision_mask
                     # store the result:
                     txt_lines, write_point_list= self.crop_text_from_img(img, text, bb, imgname, i, idx,data_dir)
-                    # tags_lines_list += txt_lines
-                    total_bbox_text_list += write_point_list
+                    tags_lines_list += txt_lines
+#total_bbox_text_list += write_point_list
                     itext.append(text)
                     ibb.append(bb)
                     # print colorize(Color.GREEN, 'text in synthgen.py/render_text append into itext '+text)
@@ -840,8 +840,8 @@ class RendererV3(object):
                 idict['charBB'] = np.concatenate(ibb, axis=2)
                 idict['wordBB'] = self.char2wordBB(idict['charBB'].copy(), ' '.join(itext))
                 # print colorize(Color.GREEN, itext)
-                # save_tags_to_txt(data_dir, imgname, i, tags_lines_list)
-                save_bbox_to_txt(data_dir, imgname, i, total_bbox_text_list)
+                save_tags_to_txt(data_dir, imgname, i, tags_lines_list)
+#save_bbox_to_txt(data_dir, imgname, i, total_bbox_text_list)
                 res.append(idict.copy())
                 if viz:
                     viz_textbb(1,img, [idict['wordBB']], alpha=1.0)

@@ -27,7 +27,7 @@ from text_utils import *
 import multiprocessing
 ## Define some configuration variables:
 NUM_IMG = -1 # no. of images to use for generation (-1 to use all available):
-INSTANCE_PER_IMAGE = 20# no. of times to use the same image
+INSTANCE_PER_IMAGE = 2# no. of times to use the same image
 SECS_PER_IMG = 10 #max time per image in seconds
 
 # path to the data-file, containing image, depth and segmentation:
@@ -157,13 +157,13 @@ def main1(args):
   ranges=ranges.split(',')
   start=int(ranges[0])
   end=int(ranges[1])
+
   for i in range(start, end):
     t1 = time.time()
     try:
         imname = 'img_%d'%i
         print 'imname: %s' %imname
-        img = Image.open('./raw_data/img/' + imname + '.jpg')
-        box=parse_txt('./raw_data/train_gts/gt_'+imname+'.txt')
+        img = Image.open('./img_bg/' + str(int(i/2)+1) + '.jpg')
         depth = sio.loadmat('./raw_data/depth_output/img_%d/predict_depth.mat'%i)['data_obj']
         seg = sio.loadmat('./raw_data/seg_output/img_%d_seg.mat'%i)['seg_mat']
         areamat = sio.loadmat('./raw_data/seg_output/img_%d_area.mat'%i)['area_mat']
@@ -174,13 +174,6 @@ def main1(args):
 
         sz = depth.shape[:2][::-1]
 
-        w, h = img.size
-        if w!=sz[0]:
-          for j in range(len(box)):
-            box[j][0]=box[j][0]*sz[0]*1./w
-            box[j][1]=box[j][1]*sz[1]*1./h
-            box[j][2]=box[j][2]*sz[0]*1./w
-            box[j][3]=box[j][3]*sz[1]*1./h
         
         img = np.array(img.resize(sz,Image.ANTIALIAS))
         seg = np.array(Image.fromarray(seg).resize(sz,Image.NEAREST))
@@ -321,9 +314,9 @@ if __name__=='__main__':
   p = multiprocessing.Pool()
   # parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
   
-  for i in range(0, 10):
-    __range = '%d,%d' %(100 * i + 1, 100*(i+1))
-    # __range = '%d,%d' %(2 * i + 1, 2*(i+1))
+  for i in range(0, 4):
+#__range = '%d,%d' %(100 * i + 1, 100*(i+1))
+    __range = '%d,%d' %(2 * i + 1, 2*(i+1))
     # __range = '1,3'
     parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
     # parser.add_argument('--multi', default='yes', type=str)

@@ -99,7 +99,7 @@ class RenderFont(object):
         # the minimum number of characters that should fit in a mask
         # to define the maximum font height.
         self.min_nchar = 1
-        self.min_font_h = 16 #px : 0.6*12 ~ 7px <= actual minimum height
+        self.min_font_h = 13 #px : 0.6*12 ~ 7px <= actual minimum height
         self.max_font_h = 120 #px
         self.p_flat = 0.10
 
@@ -419,7 +419,7 @@ class FontState(object):
     Defines the random state of the font rendering  
     """
     size = [50, 10]  # normal dist mean, std
-    underline = 0.05
+    underline = 0.0
     strong = 0.5
     oblique = 0.2
     wide = 0.5
@@ -429,7 +429,7 @@ class FontState(object):
     border = 0.25
     random_caps = -1 ## don't recapitalize : retain the capitalization of the lexicon
     capsmode = [str.lower, str.upper, str.capitalize]  # lower case, upper case, proper noun
-    curved = 0.2
+    curved = 0.1
     random_kerning = 0.2
     random_kerning_amount = 0.1
 
