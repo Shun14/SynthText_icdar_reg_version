@@ -77,7 +77,7 @@ class FontColor(object):
         norms = np.linalg.norm(self.colorsLAB-bg_mean[None,:], axis=1)
         # choose a random color amongst the top 3 closest matches:
         #nn = np.random.choice(np.argsort(norms)[:3]) 
-        nn = np.argmin(norms)
+        nn = np.argmax(norms)
 
         ## nearest neighbour color:
         data_col = self.colorsRGB[np.mod(nn,self.ncol),:]

@@ -419,7 +419,7 @@ class FontState(object):
     Defines the random state of the font rendering  
     """
     size = [50, 10]  # normal dist mean, std
-    underline = 0.05
+    underline = 0.0
     strong = 0.5
     oblique = 0.2
     wide = 0.5
@@ -429,7 +429,7 @@ class FontState(object):
     border = 0.25
     random_caps = -1 ## don't recapitalize : retain the capitalization of the lexicon
     capsmode = [str.lower, str.upper, str.capitalize]  # lower case, upper case, proper noun
-    curved = 0.2
+    curved = 0.1
     random_kerning = 0.2
     random_kerning_amount = 0.1
 
@@ -542,7 +542,7 @@ class TextSource(object):
         # files=files[0:-1]
         #print files
         random.shuffle(files)
-        filecnt=2 
+        filecnt=3 
         self.txt=[]
         for filename in files:
             filecnt-=1
@@ -558,8 +558,8 @@ class TextSource(object):
                     #print line
                     self.txt.append(line)
         random.shuffle(self.txt)          
-        if len(self.txt) > 100000:
-            self.txt = self.txt[:100000]
+        if len(self.txt) > 1000000:
+            self.txt = self.txt[:1000000]
         print len(self.txt)
             #self.txt = [l.strip() for l in f.readlines()]
             #self.txt=self.txt.decode('utf-8')

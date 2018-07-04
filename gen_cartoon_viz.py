@@ -25,9 +25,11 @@ import scipy.io as sio
 import time
 from text_utils import *
 import multiprocessing
+import pickle
+import codecs
 ## Define some configuration variables:
 NUM_IMG = -1 # no. of images to use for generation (-1 to use all available):
-INSTANCE_PER_IMAGE = 20# no. of times to use the same image
+INSTANCE_PER_IMAGE = 10# no. of times to use the same image
 SECS_PER_IMG = 10 #max time per image in seconds
 
 # path to the data-file, containing image, depth and segmentation:
@@ -36,6 +38,16 @@ DB_FNAME = osp.join(DATA_PATH,'dset.h5')
 # url of the data (google-drive public file):
 DATA_URL = 'http://www.robots.ox.ac.uk/~ankush/data.tar.gz'
 OUT_FILE = 'results/SynthText_cartoon_viz.h5'
+
+
+root_dir = '/home/zsz/datasets/Synth'
+with open(os.path.join(root_dir, 'imnames.cp')) as f:
+  imnames_cp = pickle.load(f)
+
+depth_load = h5py.File(os.path.join(root_dir, 'depth.h5'), 'r')
+seg_load = h5py.File(os.path.join(root_dir, 'seg.h5'), 'r')
+seg_load = seg_load['mask']
+imnames_list = imnames_cp
 
 def get_data():
   """
@@ -157,34 +169,45 @@ def main1(args):
   ranges=ranges.split(',')
   start=int(ranges[0])
   end=int(ranges[1])
+  
+
+  print('load')
+  # imnames_list = imnames_cp.keys()
+  print('imnamesList:',len(imnames_list))
+  if end > len(imnames_list):
+    print ('end too large')
+    traceback.print_exc()
+  else: 
+    print('next load')
   for i in range(start, end):
     t1 = time.time()
+    print('i',i)
     try:
-        imname = 'img_%d'%i
+        imname = imnames_list[i]
         print 'imname: %s' %imname
-        img = Image.open('./raw_data/img/' + imname + '.jpg')
-        box=parse_txt('./raw_data/train_gts/gt_'+imname+'.txt')
-        depth = sio.loadmat('./raw_data/depth_output/img_%d/predict_depth.mat'%i)['data_obj']
-        seg = sio.loadmat('./raw_data/seg_output/img_%d_seg.mat'%i)['seg_mat']
-        areamat = sio.loadmat('./raw_data/seg_output/img_%d_area.mat'%i)['area_mat']
-        areamat = np.array(areamat.reshape((areamat.shape[0], )))
-        label = np.arange(1, areamat.shape[0] + 1)
-        area = [areamat[q][0][0][0] for q in range(areamat.shape[0])]
-        area = np.array(area)
+        img_path = os.path.join(root_dir, 'bg_img', imname)
+        img = Image.open(img_path)
+        depth = depth_load[imname][:].T
+        depth = depth[:,:,1]
+        
+        # depth = sio.loadmat('./raw_data/depth_output/img_%d/predict_depth.mat'%i)['data_obj']
+        seg = seg_load[imname][:].astype('float32')
+        area = seg_load[imname].attrs['area']
+        label = seg_load[imname].attrs['label']
+
+        # areamat = sio.loadmat('./raw_data/seg_output/img_%d_area.mat'%i)['area_mat']
+        # areamat = np.array(areamat.reshape((areamat.shape[0], )))
+        # label = np.arange(1, areamat.shape[0] + 1)
+        # area = [areamat[q][0][0][0] for q in range(areamat.shape[0])]
+        # area = np.array(area)
 
         sz = depth.shape[:2][::-1]
 
-        w, h = img.size
-        if w!=sz[0]:
-          for j in range(len(box)):
-            box[j][0]=box[j][0]*sz[0]*1./w
-            box[j][1]=box[j][1]*sz[1]*1./h
-            box[j][2]=box[j][2]*sz[0]*1./w
-            box[j][3]=box[j][3]*sz[1]*1./h
         
         img = np.array(img.resize(sz,Image.ANTIALIAS))
         seg = np.array(Image.fromarray(seg).resize(sz,Image.NEAREST))
         print colorize(Color.RED,'%d of %d'%(i,end), bold=True)
+        imname = imname.split('.')[0]
         res = RV3.render_text(img,depth,seg,area,label, imname,data_dir=out_dir,
                             ninstance=INSTANCE_PER_IMAGE,viz=viz)
         t2=time.time()
@@ -322,8 +345,8 @@ if __name__=='__main__':
   # parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
   
   for i in range(0, 10):
-    __range = '%d,%d' %(100 * i + 1, 100*(i+1))
-    # __range = '%d,%d' %(2 * i + 1, 2*(i+1))
+    __range = '%d,%d' %(800 * i + 1, 800*(i+1))
+    #__range = '%d,%d' %(2 * i + 1, 2*(i+1))
     # __range = '1,3'
     parser = argparse.ArgumentParser(description='Genereate Synthetic Scene-Text Images')
     # parser.add_argument('--multi', default='yes', type=str)
