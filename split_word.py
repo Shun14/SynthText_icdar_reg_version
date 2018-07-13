@@ -3,10 +3,10 @@ import os
 import random
 
 import codecs
-#file_list = os.listdir('data/newsgroup')
-file_list = ['sogo_gbk.txt']
+file_list = os.listdir('data/newsgroup/en/')
+#file_list = ['sogo_gbk.txt']
 #random.shuffle(file_list)
-MAX_LINE_NUM = 10
+MAX_LINE_NUM = 20
 for change_file in file_list:
     if len(change_file.split('.')) == 2:
         change_2_file_list = []
@@ -16,9 +16,9 @@ for change_file in file_list:
         
             if len(line) ==0:
                 return new_list
-            range = random.randint(5, 12)
+            range = random.randint(6, 13)
             if  len(line) > range:
-                split_num = random.randint(4, len(line)-1)
+                split_num = random.randint(5, len(line)-1)
                 split_part1 = line[:split_num]
                 split_part2 = line[split_num:]
                 
@@ -27,7 +27,7 @@ for change_file in file_list:
                 new_list += [line+'\n']
             return new_list
         
-        with codecs.open(os.path.join('data/newsgroup',change_file), 'r', encoding='UTF-8') as f:
+        with codecs.open(os.path.join('data/newsgroup/en/',change_file), 'r', encoding='UTF-8') as f:
             for l in f.readlines():
                 line = l.strip()
                 line = line.replace(' ','')
@@ -44,7 +44,7 @@ for change_file in file_list:
         
         
         
-        with codecs.open(os.path.join('data/newsgroup/new',change_file), 'w', encoding='UTF-8') as f:
+        with codecs.open(os.path.join('data/newsgroup/new/',change_file), 'w', encoding='UTF-8') as f:
             f.writelines(change_2_file_list)
         
         print('all finished')

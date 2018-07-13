@@ -623,7 +623,7 @@ class RendererV3(object):
 
         im_final = self.colorizer.color(rgb,[text_mask],np.array([min_h]))
         # print colorize(Color.GREEN, 'text in synthgen.py/place_text to return '+text)
-        return im_final, text, bb, collision_mask
+        return im_final, text, bb, collision_mask, font
 
 
     def get_num_text_regions(self, nregions):
@@ -636,7 +636,7 @@ class RendererV3(object):
         return int(np.ceil(nmax * rnd))
     
     
-    def crop_text_from_img(self, img, text, bb, img_name, instance, idx,data_dir):
+    def crop_text_from_img(self, img, text, bb, img_name, instance, idx,data_dir, font):
         img_path = os.path.join( os.getcwd(), data_dir, 'img' ,img_name)
         if not os.path.exists(img_path):
             os.makedirs(img_path)
@@ -659,7 +659,7 @@ class RendererV3(object):
             write_point = []
 
             write_point = wordBB[:,0].tolist()+wordBB[:,1].tolist() + wordBB[:,2].tolist()+wordBB[:,3].tolist()
-            p_bbox_text = ','.join(str(p) for p in write_point) + ' ' +wrds[i] +'\n'
+            p_bbox_text = ','.join(str(p) for p in write_point) + ',' +wrds[i] + ',' + font.filename.split('/')[-1]+'\n'
 
             #crop image
             # tile = [(x, y) for (x, y) in zip(xs, ys)]
@@ -822,11 +822,11 @@ class RendererV3(object):
 
                 if txt_render_res is not None:
                     placed = True
-                    img,text,bb,collision_mask = txt_render_res
+                    img,text,bb,collision_mask, font = txt_render_res
                     # update the region collision mask:
                     place_masks[ireg] = collision_mask
                     # store the result:
-                    txt_lines, write_point_list= self.crop_text_from_img(img, text, bb, imgname, i, idx,data_dir)
+                    txt_lines, write_point_list= self.crop_text_from_img(img, text, bb, imgname, i, idx,data_dir, font)
                     # tags_lines_list += txt_lines
                     total_bbox_text_list += write_point_list
                     itext.append(text)

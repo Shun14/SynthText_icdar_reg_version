@@ -98,7 +98,7 @@ class RenderFont(object):
         self.max_shrink_trials = 5 # 0.9^5 ~= 0.6
         # the minimum number of characters that should fit in a mask
         # to define the maximum font height.
-        self.min_nchar = 1
+        self.min_nchar = 3 
         self.min_font_h = 16 #px : 0.6*12 ~ 7px <= actual minimum height
         self.max_font_h = 120 #px
         self.p_flat = 0.10
@@ -519,6 +519,7 @@ class FontState(object):
         char_spacing = fs['char_spacing']
         font.antialiased = True
         font.origin = True
+        font.filename = fs['font']
         return font
 
 def is_txt(l):
@@ -558,8 +559,6 @@ class TextSource(object):
                     #print line
                     self.txt.append(line)
         random.shuffle(self.txt)          
-        if len(self.txt) > 1000000:
-            self.txt = self.txt[:1000000]
         print len(self.txt)
             #self.txt = [l.strip() for l in f.readlines()]
             #self.txt=self.txt.decode('utf-8')

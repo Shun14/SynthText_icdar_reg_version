@@ -40,7 +40,7 @@ DATA_URL = 'http://www.robots.ox.ac.uk/~ankush/data.tar.gz'
 OUT_FILE = 'results/SynthText_cartoon_viz.h5'
 
 
-root_dir = '/home/zsz/datasets/Synth'
+root_dir = '/home/zsz/datasets'
 with open(os.path.join(root_dir, 'imnames.cp')) as f:
   imnames_cp = pickle.load(f)
 
@@ -48,7 +48,7 @@ depth_load = h5py.File(os.path.join(root_dir, 'depth.h5'), 'r')
 seg_load = h5py.File(os.path.join(root_dir, 'seg.h5'), 'r')
 seg_load = seg_load['mask']
 imnames_list = imnames_cp
-
+imnames_list.reverse()
 def get_data():
   """
   Download the image,depth and segmentation data:
@@ -352,7 +352,7 @@ if __name__=='__main__':
     # parser.add_argument('--multi', default='yes', type=str)
     parser.add_argument('--viz',action='store_true',dest='viz',default=False,help='flag for turning on visualizations') 
     parser.add_argument('--range',default=__range,type=str)
-    parser.add_argument('--output_dir',default = 'icpr_data_x',type=str)
+    parser.add_argument('--output_dir',default = 'GAN_data_3',type=str)
     args = parser.parse_args()
     p.apply_async(main1, args=(args,))
   # main1(args)
